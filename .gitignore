@@ -1,5 +1,7 @@
 .env
 node_modules
 *.xlsx
+*.xls
+*.csv
 credentials.json
 token.json

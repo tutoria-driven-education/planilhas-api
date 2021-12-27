@@ -2,7 +2,7 @@ import * as fs from 'fs/promises'
 import readline from 'readline'
 import {google} from 'googleapis'
 
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const SCOPES = ['https://www.googleapis.com/auth/drive','https://spreadsheets.google.com/feeds'];
 const TOKEN_PATH = 'token.json';
 
 export async function authorize() {
@@ -22,6 +22,7 @@ export async function authorize() {
     token =  JSON.parse(await fs.readFile(TOKEN_PATH))
             
   } catch (error) {
+    console.log("Gerando token")
     token = getAccessToken(oAuth2Client);
     
   }
