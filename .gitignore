@@ -1,0 +1,5 @@
+.env
+node_modules
+aluno.xlsx
+credentials.json
+token.json
