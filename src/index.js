@@ -27,26 +27,30 @@ function uploadFile(auth) {
 }
 
 async function sheet(auth, id) {
-  const doc = new GoogleSpreadsheet(id);
+  try {
+    const doc = new GoogleSpreadsheet(id);
 
-  doc.useOAuth2Client(auth);
+    doc.useOAuth2Client(auth);
 
-  await doc.loadInfo();
-  const sheet = doc.sheetsByTitle["Dashboard"];
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle["Dashboard"];
 
-  await sheet.loadCells({
-    startColumnIndex: 0,
-    endColumnIndex: 2,
-    startRowIndex: 11,
-    endRowIndex: 125,
-  });
+    await sheet.loadCells({
+      startColumnIndex: 0,
+      endColumnIndex: 2,
+      startRowIndex: 11,
+      endRowIndex: 125,
+    });
 
-  const students = getStudentInfo(sheet, 130);
+    const students = getStudentInfo(sheet, 130);
 
-  const drive = google.drive({ version: "v3", auth });
+    const drive = google.drive({ version: "v3", auth });
 
-  for await (const eachStudent of students) {
-    createSingleFile(drive, eachStudent);
+    for await (const eachStudent of students) {
+      createSingleFile(drive, eachStudent);
+    }
+  } catch (err) {
+    console.log("Request fail, try again");
   }
 }
 
@@ -67,7 +71,7 @@ async function createSingleFile(drive, eachStudent) {
         fields: "id",
       },
       (err, res) => {
-        if (err) {
+        if (err && err.code === 500) {
           console.log(
             `Falhou com o aluno: ${eachStudent.studentName}, tentando novamente`
           );
@@ -80,7 +84,7 @@ async function createSingleFile(drive, eachStudent) {
       }
     );
   } catch (err) {
-    console.log("Request fail, try again")
+    console.log("Request fail, try again");
   }
 }
 
