@@ -10,10 +10,10 @@ async function getStudents(auth, id) {
       startColumnIndex: 0,
       endColumnIndex: 2,
       startRowIndex: 11,
-      endRowIndex: 25,
+      endRowIndex: 125,
     }
     const sheetTitle = "Dashboard"
-    const amountOfStudents = 22
+    const amountOfStudents = 130
 
     const sheet = await initSpreadsheet(auth,id,sheetTitle,ranges)
     const students = getStudentInfo(sheet, amountOfStudents);
@@ -23,38 +23,61 @@ async function getStudents(auth, id) {
   }
 }
 
-async function uploadFilesStudents(auth,students){
+async function uploadFilesStudents(auth,students,folderId){
   
   const pathTemplateStudent = 'templateAluno.xls'
   let fileNameInDrive;
   for await (const student of students) {
     fileNameInDrive = `${student.name} - Controle de Presença`
-    const idStudent = await uploadFile(auth,fileNameInDrive,pathTemplateStudent)
+    const idStudent = await uploadFile(auth,fileNameInDrive,pathTemplateStudent,folderId)
     await writeSheetStudent(auth,idStudent,student.name,student.email)
     console.log(
-      `Deu certo com o aluno: ${student.name} && FileId: ${idStudent}`
+      `Student ${student.name} file created!`
     );
   }
 }
 
-async function uploadSpreadsheetStudents(auth){
+async function uploadSpreadsheetStudents(auth,folderId){
   const fileNameInDrive = "template"
   const path = "template.xlsx"
-  const idSpreadsheet = await uploadFile(auth,fileNameInDrive,path)
+  const idSpreadsheet = await uploadFile(auth,fileNameInDrive,path,folderId)
 
   return idSpreadsheet
+}
+
+async function createFolder(auth) {
+  const drive = google.drive({ version: "v3", auth });
+  let fileMetadata = {
+    name: `Turma 5`,
+    mimeType: "application/vnd.google-apps.folder",
+  };
+
+  try {
+    const request = await Promise.resolve(
+      drive.files.create({
+        resource: fileMetadata,
+        fields: "id",
+      })
+    );
+    return request.data.id;
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 
 async function main() {
   const auth = await authorize();
-  console.log("Autenticado com sucesso!")
-  const idTemplate = await uploadSpreadsheetStudents(auth)
-  console.log("Upload da mae com sucesso!")
+  console.log("Success on authenticate!")
+  const folderId = await createFolder(auth)
+  console.log("Creating class folder!")
+  const idTemplate = await uploadSpreadsheetStudents(auth,folderId)
+  console.log("Success on upload main spread!")
   const students = await getStudents(auth,idTemplate)
   console.log("Loading students with success!")
-  await uploadFilesStudents(auth,students)
+  await uploadFilesStudents(auth,students,folderId)
   console.log("Upload files each student")
+  console.log("Done!")
 
 }
 
