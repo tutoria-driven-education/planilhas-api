@@ -1,8 +1,6 @@
-import { createReadStream } from "fs";
-import { google } from "googleapis";
 import { authorize } from "./auth.js";
-import { uploadFile } from "./drive.js";
-import {getStudentInfo, initSpreadsheet, writeSheetStudent} from './sheet.js'
+import { uploadFile, createFolder } from "./drive.js";
+import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js'
 
 async function getStudents(auth, id) {
   try {
@@ -24,7 +22,6 @@ async function getStudents(auth, id) {
 }
 
 async function uploadFilesStudents(auth,students,folderId){
-  
   const pathTemplateStudent = 'templateAluno.xls'
   let fileNameInDrive;
   for await (const student of students) {
@@ -45,27 +42,6 @@ async function uploadSpreadsheetStudents(auth,folderId){
   return idSpreadsheet
 }
 
-async function createFolder(auth) {
-  const drive = google.drive({ version: "v3", auth });
-  let fileMetadata = {
-    name: `Turma 5`,
-    mimeType: "application/vnd.google-apps.folder",
-  };
-
-  try {
-    const request = await Promise.resolve(
-      drive.files.create({
-        resource: fileMetadata,
-        fields: "id",
-      })
-    );
-    return request.data.id;
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-
 async function main() {
   const auth = await authorize();
   console.log("Success on authenticate!")
@@ -78,7 +54,6 @@ async function main() {
   await uploadFilesStudents(auth,students,folderId)
   console.log("Upload files each student")
   console.log("Done!")
-
 }
 
 main();
