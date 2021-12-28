@@ -1,6 +1,7 @@
 import { authorize } from "./auth.js";
 import { uploadFile, createFolder } from "./drive.js";
 import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js'
+import { promiseMap } from "./lib/promiseMap.js"
 
 async function getStudents(auth, id) {
   try {
@@ -13,7 +14,7 @@ async function getStudents(auth, id) {
     const sheetTitle = "Dashboard"
     const amountOfStudents = 130
 
-    const sheet = await initSpreadsheet(auth,id,sheetTitle,ranges)
+    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges)
     const students = getStudentInfo(sheet, amountOfStudents);
     return students
   } catch (err) {
@@ -21,23 +22,28 @@ async function getStudents(auth, id) {
   }
 }
 
-async function uploadFilesStudents(auth,students,folderId){
-  const pathTemplateStudent = 'templateAluno.xls'
+async function uploadFilesStudents(auth, students, folderId) {
+  const pathTemplateStudent = 'templateAluno.xlsx'
   let fileNameInDrive;
-  for await (const student of students) {
+
+  return promiseMap(students, student => {
     fileNameInDrive = `${student.name} - Controle de Presença`
-    const idStudent = await uploadFile(auth,fileNameInDrive,pathTemplateStudent,folderId)
-    await writeSheetStudent(auth,idStudent,student.name,student.email)
-    console.log(
-      `Student ${student.name} file created!`
+    return uploadFile(auth, fileNameInDrive, pathTemplateStudent, folderId).then(
+      (studentId) => writeSheetStudent(auth, studentId, student.name, student.email).then(
+        // TODO: add fire student email logic
+        () => console.log(
+          `Student ${student.name} file created!`
+        )
+      )
     );
-  }
+    // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  }, { concurrency: 5 });
 }
 
-async function uploadSpreadsheetStudents(auth,folderId){
+async function uploadSpreadsheetStudents(auth, folderId) {
   const fileNameInDrive = "template"
   const path = "template.xlsx"
-  const idSpreadsheet = await uploadFile(auth,fileNameInDrive,path,folderId)
+  const idSpreadsheet = await uploadFile(auth, fileNameInDrive, path, folderId)
 
   return idSpreadsheet
 }
@@ -47,11 +53,11 @@ async function main() {
   console.log("Success on authenticate!")
   const folderId = await createFolder(auth)
   console.log("Creating class folder!")
-  const idTemplate = await uploadSpreadsheetStudents(auth,folderId)
+  const idTemplate = await uploadSpreadsheetStudents(auth, folderId)
   console.log("Success on upload main spread!")
-  const students = await getStudents(auth,idTemplate)
+  const students = await getStudents(auth, idTemplate)
   console.log("Loading students with success!")
-  await uploadFilesStudents(auth,students,folderId)
+  await uploadFilesStudents(auth, students, folderId)
   console.log("Upload files each student")
   console.log("Done!")
 }
