@@ -4,17 +4,18 @@ import { uploadFile, createFolder, copyFile } from "./drive.js";
 import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js'
 
 async function getStudents(auth, id, amountOfStudents) {
+  const amountStudentsRange = amountOfStudents + 11 //initial row students
   try {
     const ranges = {
       startColumnIndex: 0,
       endColumnIndex: 2,
       startRowIndex: 11,
-      endRowIndex: amountOfStudents,
+      endRowIndex: amountStudentsRange,
     }
     const sheetTitle = "Dashboard"
 
     const sheet = await initSpreadsheet(auth,id,sheetTitle,ranges)
-    const students = getStudentInfo(sheet, amountOfStudents);
+    const students = getStudentInfo(sheet, amountStudentsRange);
     return students
   } catch (err) {
     console.log("Error in get Students",err);
