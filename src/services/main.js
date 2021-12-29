@@ -9,7 +9,7 @@ async function getStudents(auth, id, amountOfStudents) {
       startColumnIndex: 0,
       endColumnIndex: 2,
       startRowIndex: 11,
-      endRowIndex: amountOfStudents,
+      endRowIndex: amountOfStudents + 11,
     }
     const sheetTitle = "Dashboard"
 

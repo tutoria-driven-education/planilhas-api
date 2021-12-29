@@ -40,9 +40,9 @@ export async function writeSheetStudent(auth,id,studentName,studentEmail) {
 export function getStudentInfo(sheet, amountOfStudents) {
   const students = [];
   const initialRowStudents = 11
-  for (let i = initialRowStudents; i < amountOfStudents; i++) {
-    const name = sheet.getCell(i, 0).value;
-    const email = sheet.getCell(i, 1).value;
+  for (let i = 0; i < amountOfStudents; i++) {
+    const name = sheet.getCell((i+initialRowStudents), 0).value;
+    const email = sheet.getCell((i+initialRowStudents), 1).value;
     if (name === null) break;
     students.push({ name, email });
   }
