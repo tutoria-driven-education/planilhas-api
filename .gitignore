@@ -3,5 +3,5 @@ node_modules
 *.xlsx
 *.xls
 *.csv
-credentials.json
+# credentials.json
 token.json

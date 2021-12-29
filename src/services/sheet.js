@@ -2,32 +2,29 @@ import {
 GoogleSpreadsheet
 } from 'google-spreadsheet'
 
-export async function initSpreadsheet(auth,id,sheetTitle,ranges=null){  
+export async function initSpreadsheet(auth,id,sheetTitle,ranges){  
   const doc = new GoogleSpreadsheet(id)
   
   doc.useOAuth2Client(auth)
 
   await doc.loadInfo()
   const sheet = doc.sheetsByTitle[sheetTitle]
-
-  if (ranges === null){
-    await sheet.loadCells({
-      startColumnIndex: 0,
-      endColumnIndex: 4,
-      startRowIndex: 0,
-      endRowIndex: 20,
-    })
-  } else{
-    await sheet.loadCells(ranges)
-  }
-
+ 
+  await sheet.loadCells(ranges)
+  
   return sheet
 
 }
 
 export async function writeSheetStudent(auth,id,studentName,studentEmail) {
   const sheetTitle = "Controle"
-  const sheet = await initSpreadsheet(auth,id,sheetTitle)
+  const ranges = {
+    startColumnIndex: 0,
+    endColumnIndex: 4,
+    startRowIndex: 0,
+    endRowIndex: 20,
+  }
+  const sheet = await initSpreadsheet(auth,id,sheetTitle, ranges)
 
   const nomeCell = sheet.getCell(15,0)
   nomeCell.value = studentName
@@ -40,9 +37,9 @@ export async function writeSheetStudent(auth,id,studentName,studentEmail) {
 export function getStudentInfo(sheet, amountOfStudents) {
   const students = [];
   const initialRowStudents = 11
-  for (let i = initialRowStudents; i < amountOfStudents; i++) {
-    const name = sheet.getCell(i, 0).value;
-    const email = sheet.getCell(i, 1).value;
+  for (let i = 0; i < amountOfStudents; i++) {
+    const name = sheet.getCell((i+initialRowStudents), 0).value;
+    const email = sheet.getCell((i+initialRowStudents), 1).value;
     if (name === null) break;
     students.push({ name, email });
   }
