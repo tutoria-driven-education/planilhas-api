@@ -4,7 +4,7 @@ import { uploadFile, createFolder, copyFile } from "./drive.js";
 import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js'
 
 async function getStudents(auth, id, amountOfStudents) {
-  const amountStudentsRange = amountOfStudents + 11 //initial row students
+  const amountStudentsRange = parseInt(amountOfStudents) + 11 //initial row students
   try {
     const ranges = {
       startColumnIndex: 0,
@@ -13,7 +13,6 @@ async function getStudents(auth, id, amountOfStudents) {
       endRowIndex: amountStudentsRange,
     }
     const sheetTitle = "Dashboard"
-
     const sheet = await initSpreadsheet(auth,id,sheetTitle,ranges)
     const students = getStudentInfo(sheet, amountStudentsRange);
     return students
