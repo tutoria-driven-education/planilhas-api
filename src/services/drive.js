@@ -64,3 +64,16 @@ export async function copyFile(auth, id, folderId, nameFile){
     console.log("Error in copy file!", error)
   }
 }
+
+export function updatePermitionStudentFile(auth, id) {
+  const drive = google.drive({ version: "v3", auth });
+
+  return Promise.resolve(drive.permissions.create({
+    fileId:id,
+    resource:{
+      'type': 'anyone',
+      'role': 'reader',
+    },
+    fields: "id",
+  }))
+}

@@ -1,7 +1,8 @@
 import { promiseMap } from "../lib/promiseMap.js";
 import { authorize } from "./auth.js";
-import { uploadFile, createFolder, copyFile } from "./drive.js";
-import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js'
+import { createFolder, copyFile, updatePermitionStudentFile } from "./drive.js";
+import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js';
+import sendStudentMail from "./mail.js"
 
 async function getStudents(auth, id, amountOfStudents) {
   const amountStudentsRange = parseInt(amountOfStudents) + 11 //initial row students
@@ -26,15 +27,17 @@ async function uploadFilesStudents(auth,students,folderId,idSpreadsheetTemplate)
   return promiseMap(students, student => {
     fileNameInDrive = `${student.name} - Controle de Presença`
     return copyFile(auth,idSpreadsheetTemplate,folderId, fileNameInDrive).then(
-      (studentId) => writeSheetStudent(auth, studentId, student.name, student.email).then(
-        // TODO: add fire student email logic
-        () => console.log(
-          `Student ${student.name} file created!`
-        )
-      )
-    );
-    // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
-  }, { concurrency: 5 });
+      (studentId) => {
+        return updatePermitionStudentFile(auth, studentId, student.name).then(()=>{
+          console.log(`Permition ${student.name} changed!`);
+          return writeSheetStudent(auth, studentId, student.name, student.email).then(()=> {
+            console.log(`Student ${student.name} file rewrited!`);
+            return sendStudentMail(student.name, student.email, studentId);
+          })
+        })
+      }
+    )
+  }, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
 async function uploadSpreadsheetStudents(auth,folderId,idSpreadsheetStudents){
@@ -61,5 +64,3 @@ export async function execute(idSpreadsheetStudents,idSpreadsheetTemplate,amount
   console.log("Upload files each student")
   console.log("Done!")
 }
-
-

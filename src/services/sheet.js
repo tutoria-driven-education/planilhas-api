@@ -30,8 +30,8 @@ export async function writeSheetStudent(auth,id,studentName,studentEmail) {
   nomeCell.value = studentName
   const emailCell = sheet.getCell(15,1)
   emailCell.value = studentEmail
-
-  await sheet.saveUpdatedCells();
+  
+  return await sheet.saveUpdatedCells();
 }
 
 export function getStudentInfo(sheet, amountOfStudents) {
