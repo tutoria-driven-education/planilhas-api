@@ -11,5 +11,5 @@ router.get("/test",(req,res)=>{
 router.post("/api/auth",authController.getLinkToken)
 router.post("/api/auth/token",authController.getTokenGoogle)
 
-router.post("/execute",mainController.execute)
+router.post("/api/execute",mainController.execute)
 export {router}
