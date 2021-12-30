@@ -8,8 +8,8 @@ router.get("/test",(req,res)=>{
   return res.send("Rodando")
 })
 
-router.get("/auth",authController.getLinkToken)
-router.post("/auth",authController.getTokenGoogle)
+router.post("/api/auth",authController.getLinkToken)
+router.post("/api/auth/token",authController.getTokenGoogle)
 
 router.post("/execute",mainController.execute)
 export {router}
