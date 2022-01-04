@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
-const path = ".env";
+const path = '.env';
 
 dotenv.config({ path });

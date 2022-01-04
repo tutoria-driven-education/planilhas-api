@@ -4,20 +4,20 @@ export const promiseMap = (array, promiseFn, args) => {
   if (!array.length) { return Promise.resolve([]); }
   const concurrency = Math.min(
     (args || {}).concurrency || array.length,
-    array.length
+    array.length,
   );
 
-  let workingStack = Array.from(array);
+  const workingStack = Array.from(array);
 
-  let results = new Array(array.length);
+  const results = new Array(array.length);
 
-  let queue = [];
+  const queue = [];
   let finished = 0;
 
   return new Promise((resolve, reject) => {
     function queuePromise() {
-      let item = workingStack.shift();
-      let itemPromise = (promiseFn(item) || Promise.resolve())
+      const item = workingStack.shift();
+      const itemPromise = (promiseFn(item) || Promise.resolve())
         .then((result) => {
           finished++;
           results[array.indexOf(item)] = result;
@@ -29,9 +29,7 @@ export const promiseMap = (array, promiseFn, args) => {
             queuePromise();
           }
         })
-        .catch((err) => {
-          return reject(err);
-        });
+        .catch((err) => reject(err));
 
       queue.push(itemPromise);
 

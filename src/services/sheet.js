@@ -1,42 +1,42 @@
 import {
-GoogleSpreadsheet
-} from 'google-spreadsheet'
+  GoogleSpreadsheet,
+} from 'google-spreadsheet';
 
-export async function initSpreadsheet(auth,id,sheetTitle,ranges){  
-  const doc = new GoogleSpreadsheet(id)
-  
-  doc.useOAuth2Client(auth)
+export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
+  const doc = new GoogleSpreadsheet(id);
 
-  await doc.loadInfo()
-  const sheet = doc.sheetsByTitle[sheetTitle]
- 
-  await sheet.loadCells(ranges)
-  
-  return sheet
+  doc.useOAuth2Client(auth);
 
+  await doc.loadInfo();
+  const sheet = doc.sheetsByTitle[sheetTitle];
+
+  await sheet.loadCells(ranges);
+
+  return sheet;
 }
 
-export async function writeSheetStudent(auth,id,studentName,studentEmail) {
-  const sheetTitle = "Controle"
+export async function writeSheetStudent(auth, id, studentName, studentEmail) {
+  const sheetTitle = 'Controle';
   const ranges = {
     startColumnIndex: 0,
     endColumnIndex: 4,
     startRowIndex: 0,
     endRowIndex: 20,
-  }
-  const sheet = await initSpreadsheet(auth,id,sheetTitle, ranges)
+  };
+  const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges);
 
-  const nomeCell = sheet.getCell(15,0)
-  nomeCell.value = studentName
-  const emailCell = sheet.getCell(15,1)
-  emailCell.value = studentEmail
-  
-  return await sheet.saveUpdatedCells();
+  const nomeCell = sheet.getCell(15, 0);
+  nomeCell.value = studentName;
+  const emailCell = sheet.getCell(15, 1);
+  emailCell.value = studentEmail;
+
+  return sheet.saveUpdatedCells();
 }
 
 export function getStudentInfo(sheet, amountOfStudents) {
   const students = [];
-  const initialRowStudents = 11
+  const initialRowStudents = 11;
+  // eslint-disable-next-line no-plusplus
   for (let i = initialRowStudents; i < amountOfStudents; i++) {
     const name = sheet.getCell(i, 0).value;
     const email = sheet.getCell(i, 1).value;
