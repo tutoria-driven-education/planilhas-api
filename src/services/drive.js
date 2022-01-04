@@ -2,81 +2,78 @@ import { createReadStream } from 'fs';
 import { google } from 'googleapis';
 
 export async function uploadFile(auth, fileNameInDrive, path, folderId) {
-  const drive = google.drive({ version: 'v3', auth });
-  const resource = {
-    name: fileNameInDrive,
-    mimeType: 'application/vnd.google-apps.spreadsheet',
-    parents: [folderId],
-  };
-  const media = {
-    body: createReadStream(path),
-    mimeType: 'application/vnd.ms-excel',
-  };
+	const drive = google.drive({ version: 'v3', auth });
+	const resource = {
+		name: fileNameInDrive,
+		mimeType: 'application/vnd.google-apps.spreadsheet',
+		parents: [folderId],
+	};
+	const media = {
+		body: createReadStream(path),
+		mimeType: 'application/vnd.ms-excel',
+	};
 
-  try {
-    const request = await Promise.resolve(drive.files.create({
-      resource,
-      media,
-      fields: 'id',
-    }));
+	try {
+		const request = await Promise.resolve(drive.files.create({
+			resource,
+			media,
+			fields: 'id',
+		}));
 
-    return request.data.id;
-  } catch (error) {
-    if (error.code === 500) uploadFile(auth, fileNameInDrive, path, folderId);
-    // eslint-disable-next-line no-console
-    return console.log(error);
-  }
+		return request.data.id;
+	} catch (error) {
+		if (error.code === 500) uploadFile(auth, fileNameInDrive, path, folderId);
+		return console.log(error);
+	}
 }
 
 export async function createFolder(auth, className) {
-  const drive = google.drive({ version: 'v3', auth });
-  const resource = {
-    name: className,
-    mimeType: 'application/vnd.google-apps.folder',
-  };
+	const drive = google.drive({ version: 'v3', auth });
+	const resource = {
+		name: className,
+		mimeType: 'application/vnd.google-apps.folder',
+	};
 
-  try {
-    const request = await Promise.resolve(
-      drive.files.create({
-        resource,
-        fields: 'id',
-      }),
-    );
-    return request.data.id;
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    return console.log(err);
-  }
+	try {
+		const request = await Promise.resolve(
+			drive.files.create({
+				resource,
+				fields: 'id',
+			}),
+		);
+		return request.data.id;
+	} catch (err) {
+		return console.log(err);
+	}
 }
 
 export async function copyFile(auth, id, folderId, nameFile) {
-  const drive = google.drive({ version: 'v3', auth });
+	const drive = google.drive({ version: 'v3', auth });
 
-  try {
-    const request = await Promise.resolve(drive.files.copy({
-      fileId: id,
-      requestBody: {
-        parents: [folderId],
-        name: nameFile,
-        mimeType: 'application/vnd.google-apps.spreadsheet',
-      },
-    }));
-    return request.data.id;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    return console.log('Error in copy file!', error);
-  }
+	try {
+		const request = await Promise.resolve(drive.files.copy({
+			fileId: id,
+			requestBody: {
+				parents: [folderId],
+				name: nameFile,
+				mimeType: 'application/vnd.google-apps.spreadsheet',
+			},
+		}));
+		return request.data.id;
+	} catch (error) {
+		return console.log('Error in copy file!', error);
+	}
 }
 
 export function updatePermitionStudentFile(auth, id) {
-  const drive = google.drive({ version: 'v3', auth });
+	const drive = google.drive({ version: 'v3', auth });
 
-  return Promise.resolve(drive.permissions.create({
-    fileId: id,
-    resource: {
-      type: 'anyone',
-      role: 'reader',
-    },
-    fields: 'id',
-  }));
+	return Promise.resolve(drive.permissions.create({
+		fileId: id,
+		resource: {
+			type: 'anyone',
+			role: 'reader',
+		},
+		fields: 'id',
+	}));
 }
