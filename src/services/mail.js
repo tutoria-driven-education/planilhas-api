@@ -1,4 +1,5 @@
 import NodeMailer from 'nodemailer';
+import mailTemplate from '../templates/mail';
 
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
   const mail = NodeMailer.createTransport({
@@ -8,22 +9,21 @@ export default function sendStudentMail(studentName, studentEmail, sheetId) {
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-
+  const template = mailTemplate(studentName, sheetId);
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: studentEmail,
     subject: `Olá ${studentName}! Sua planilha individual de presença está pronta`,
-    html: `
-        <h1> Olá ${studentName}</h1>
-
-        <span>Sua planilha pode ser vista <a href="https://docs.google.com/spreadsheets/d/${sheetId}/">aqui</a></span>
-        `,
+    html: template,
   };
 
+  // eslint-disable-next-line no-unused-vars
   return mail.sendMail(mailOptions, (error, _info) => {
     if (error) {
+      // eslint-disable-next-line no-console
       console.log('Error sending email: ', error);
     } else {
+      // eslint-disable-next-line no-console
       console.log(`Email sended to student ${studentName}`);
     }
   });

@@ -1,5 +1,5 @@
 import * as mainService from '../services/main';
-import { extractIdByUrl } from '../utils/index';
+import extractIdByUrl from '../utils';
 
 export default async function execute(req, res) {
   const {
