@@ -1,4 +1,4 @@
-import * as authService from '../services/auth.js';
+import * as authService from '../services/auth';
 
 export async function getLinkToken(req, res) {
   const { email, password } = req.body;

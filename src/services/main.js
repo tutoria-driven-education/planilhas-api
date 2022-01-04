@@ -1,4 +1,4 @@
-import { promiseMap } from '../lib/promiseMap';
+import promiseMap from '../lib/promiseMap';
 import { authorize } from './auth';
 import { createFolder, copyFile, updatePermitionStudentFile } from './drive';
 import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet';

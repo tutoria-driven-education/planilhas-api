@@ -6,10 +6,13 @@ async function getOauth() {
   try {
     credentials = JSON.parse(await fs.readFile('credentials.json'));
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Error in reading credentials', error);
   }
 
+  // eslint-disable-next-line camelcase
   const { client_secret, client_id, redirect_uris } = credentials.installed;
+  // eslint-disable-next-line camelcase
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
   return oAuth2Client;
@@ -32,7 +35,8 @@ export async function getTokenGoogle(code) {
     const request = await (oAuth.getToken(code));
     return request.tokens;
   } catch (err) {
-    console.log('Error in search token');
+    // eslint-disable-next-line no-console
+    return console.log('Error in search token');
   }
 }
 

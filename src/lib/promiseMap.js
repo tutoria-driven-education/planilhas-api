@@ -1,4 +1,5 @@
-export const promiseMap = (array, promiseFn, args) => {
+const promiseMap = (array, promiseFn, args) => {
+  // eslint-disable-next-line prefer-promise-reject-errors
   if (!array) { return Promise.reject('arrayNotIterable'); }
 
   if (!array.length) { return Promise.resolve([]); }
@@ -18,7 +19,9 @@ export const promiseMap = (array, promiseFn, args) => {
     function queuePromise() {
       const item = workingStack.shift();
       const itemPromise = (promiseFn(item) || Promise.resolve())
+        // eslint-disable-next-line consistent-return
         .then((result) => {
+          // eslint-disable-next-line no-plusplus
           finished++;
           results[array.indexOf(item)] = result;
           if (finished === array.length) { return resolve(results); }
@@ -40,3 +43,5 @@ export const promiseMap = (array, promiseFn, args) => {
     queuePromise();
   });
 };
+
+export default promiseMap;
