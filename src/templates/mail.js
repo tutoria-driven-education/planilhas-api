@@ -478,7 +478,7 @@ export default function mailTemplate(studentName, spreadId) {
                                         line-height: 22.4px;
                                       "
                                       >Esse é um email gerado automaticamente,
-                                      contendo a sua planilha individual de <strong>presença</strong>! Onde vai conseguir conferir dia a dia a sua presença nas <strong>aulas</strong>.</span
+                                      contendo a sua planilha individual de <strong>presença</strong>! Nessa planilha você vai conseguir ver suas presenças nas <strong>aulas</strong>, quantidades de faltas restantes e quantas faltas você já tem!</span
                                     >
                                   </p>
                                   <p style="font-size: 14px; line-height: 140%">
