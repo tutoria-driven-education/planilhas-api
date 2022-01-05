@@ -1,7 +1,7 @@
 import * as mainService from '../services/main.js';
 import extractIdByUrl from '../utils/index.js';
 
-export default async function execute(req, res) {
+export async function execute(req, res) {
 	const {
 		linkSpreadsheetStudents,
 		linkSpreadsheetTemplate,

@@ -1,0 +1,12 @@
+{
+  "development": {
+    "storage": "database.sqlite",
+    "dialect": "sqlite",
+    "loggin": "console.log"
+  },
+  "production": {
+    "storage": "database)production.sqlite",
+    "dialect": "sqlite",
+    "loggin": "console.log"
+  }
+}

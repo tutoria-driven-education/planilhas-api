@@ -1,19 +1,21 @@
 {
   "name": "planilhas",
-  "type": "module",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js",
+    "start": "node --experimental-json-modules ./src/server.js",
+    "dev": "nodemon --experimental-json-modules ./src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "eslint": "npx eslint --fix \"**/*.js\" "
+    "lint": "npx eslint --fix \"**/*.js\" ",
+    "db:cli": "sqlite3 database.sqlite"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.2",
@@ -24,9 +26,11 @@
     "sqlite3": "^4.2.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.16.7",
+    "babel-register": "^6.26.0",
     "eslint": "^8.6.0",
-    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.4",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "sequelize-cli": "^6.3.0"
   }
 }

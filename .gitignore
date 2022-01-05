@@ -5,3 +5,4 @@ node_modules
 *.csv
 # credentials.json
 token.json
+local
