@@ -1,24 +1,13 @@
 const model = (sequelize, DataTypes) => {
-	const User = sequelize.define('User', {
+	const UserGroup = sequelize.define('UserGroup', {
 		id: {
 			allowNull: false,
 			autoIncrement: true,
 			primaryKey: true,
 			type: DataTypes.INTEGER,
 		},
-		password: {
-			allowNull: false,
-			type: DataTypes.STRING,
-		},
 		name: {
 			allowNull: false,
-			type: DataTypes.STRING,
-		},
-		email: {
-			allowNull: false,
-			type: DataTypes.STRING,
-		},
-		slackId: {
 			type: DataTypes.STRING,
 		},
 	}, {
@@ -26,7 +15,7 @@ const model = (sequelize, DataTypes) => {
 		timestamps: false
 	});
 
-	return User;
+	return UserGroup;
 };
 
 export default model;

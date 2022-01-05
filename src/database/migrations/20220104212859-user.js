@@ -20,6 +20,13 @@ module.exports = {
 			type: Sequelize.STRING,
 			allowNull: false,
 		},
+		slackId: {
+			type: Sequelize.STRING,
+		},
+		UserGroupId: {
+			type: Sequelize.STRING,
+			allowNull: false
+		},
 	}),
 
 	// eslint-disable-next-line no-unused-vars

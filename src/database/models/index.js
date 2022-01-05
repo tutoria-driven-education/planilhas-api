@@ -1,6 +1,10 @@
 import Sequelize from 'sequelize';
 
+import applyAssociations from './utils/associations.js';
+
 import userModel from './User.js';
+import userGroupModel from './UserGroup.js';
+import classModel from './Class.js';
 
 import config from '../config/database.json';
 
@@ -8,6 +12,7 @@ const db = {};
 
 let sequelize;
 
+// TODO: use env variables
 if (config['development']) {
 	sequelize = new Sequelize(config['development']);
 } else {
@@ -15,7 +20,9 @@ if (config['development']) {
 }
 
 [
-	userModel
+	userModel,
+	userGroupModel,
+	classModel
 ].map((model) => {
 	const instance = model(sequelize, Sequelize.DataTypes);
 	db[instance.name] = instance;
@@ -30,5 +37,7 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+applyAssociations(sequelize);
 
 export default db;

@@ -13,6 +13,9 @@ router.post('/api/execute', mainController.execute);
 
 router.post('/api/login', userController.login);
 
-router.post('/api/createUser', userController.create);
+// We're disabling this for now
+router.post('/api/user', userController.create);
+router.get('/api/user', userController.getAll);
+router.get('/api/userGroup', userController.getAllGroups);
 
 export { router };
