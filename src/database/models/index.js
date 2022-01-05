@@ -1,8 +1,6 @@
-'use strict';
-
 import Sequelize from 'sequelize';
 
-import userModel from './User/index.js';
+import userModel from './User.js';
 
 import config from '../config/database.json';
 

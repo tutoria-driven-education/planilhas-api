@@ -5,7 +5,7 @@
     "loggin": "console.log"
   },
   "production": {
-    "storage": "database)production.sqlite",
+    "storage": "database_production.sqlite",
     "dialect": "sqlite",
     "loggin": "console.log"
   }

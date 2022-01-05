@@ -9,7 +9,9 @@
     "dev": "nodemon --experimental-json-modules ./src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint --fix \"**/*.js\" ",
-    "db:cli": "sqlite3 database.sqlite"
+    "db:cli": "sqlite3 database.sqlite",
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:seed:all": "npx sequelize-cli db:seed:all"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +28,7 @@
     "sqlite3": "^4.2.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.7",
     "babel-register": "^6.26.0",
     "eslint": "^8.6.0",

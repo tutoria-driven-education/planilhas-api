@@ -6,9 +6,18 @@ const model = (sequelize, DataTypes) => {
 			primaryKey: true,
 			type: DataTypes.INTEGER,
 		},
-		password: DataTypes.STRING,
-		name: DataTypes.STRING,
-		email: DataTypes.STRING,
+		password: {
+			allowNull: false,
+			type: DataTypes.STRING,
+		} ,
+		name: {
+			allowNull: false,
+			type: DataTypes.STRING,
+		} ,
+		email: {
+			allowNull: false,
+			type: DataTypes.STRING,
+		},
 	}, {
 		freezeTableName: true,
 		timestamps: false
