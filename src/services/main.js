@@ -32,7 +32,7 @@ async function uploadFilesStudents(auth,students,folderId,idSpreadsheetTemplate)
           console.log(`Permition ${student.name} changed!`);
           return writeSheetStudent(auth, studentId, student.name, student.email).then(()=> {
             console.log(`Student ${student.name} file rewrited!`);
-            return sendStudentMail(student.name, student.email, studentId);
+            // return sendStudentMail(student.name, student.email, studentId);
           })
         })
       }
