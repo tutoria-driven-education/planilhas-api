@@ -8,3 +8,4 @@ token.json
 local
 
 *.sqlite
+credentials.js
