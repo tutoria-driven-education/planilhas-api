@@ -37,7 +37,7 @@ async function uploadFilesStudents(auth,students,folderId,idSpreadsheetTemplate)
         })
       }
     )
-  }, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  }, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
 async function uploadSpreadsheetStudents(auth,folderId,idSpreadsheetStudents){
