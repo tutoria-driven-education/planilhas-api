@@ -6,3 +6,4 @@ node_modules
 # credentials.json
 token.json
 credentials.js
+database.sqlite
