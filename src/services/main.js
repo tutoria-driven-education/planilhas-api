@@ -44,7 +44,7 @@ async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTempla
       await updatePermitionStudentFile(auth, studentId, student.name)
       await writeSheetStudent(auth, studentId, student.name, student.email)
     })
-  }, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  }, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
 async function uploadSpreadsheetStudents(auth, folderId, idSpreadsheetStudents) {
