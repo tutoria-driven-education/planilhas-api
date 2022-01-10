@@ -1,7 +1,7 @@
 import { createReadStream } from "fs";
 import { google } from "googleapis";
 
-export async function uploadFile(auth,fileNameInDrive,path,folderId) {
+export async function uploadFile(auth, fileNameInDrive, path, folderId) {
   const drive = google.drive({ version: "v3", auth });
   const resource = {
     name: fileNameInDrive,
@@ -23,7 +23,7 @@ export async function uploadFile(auth,fileNameInDrive,path,folderId) {
     return request.data.id
   } catch (error) {
     console.log(error)
-    if(error.code === 500) uploadFile(auth,fileNameInDrive,path,folderId);
+    if (error.code === 500) uploadFile(auth, fileNameInDrive, path, folderId);
   }
 }
 
@@ -47,21 +47,22 @@ export async function createFolder(auth, className) {
   }
 }
 
-export async function copyFile(auth, id, folderId, nameFile){
+export async function copyFile(auth, id, folderId, nameFile) {
   const drive = google.drive({ version: "v3", auth });
 
   try {
     const request = await Promise.resolve(drive.files.copy({
-      fileId:id,
-      requestBody:{
-        parents:[folderId],
-        name:nameFile,
+      fileId: id,
+      requestBody: {
+        parents: [folderId],
+        name: nameFile,
         mimeType: "application/vnd.google-apps.spreadsheet",
       }
     }))
     return request.data.id
   } catch (error) {
     console.log("Error in copy file!", error)
+    throw new Error("Error in copy file")
   }
 }
 
@@ -69,8 +70,8 @@ export function updatePermitionStudentFile(auth, id) {
   const drive = google.drive({ version: "v3", auth });
 
   return Promise.resolve(drive.permissions.create({
-    fileId:id,
-    resource:{
+    fileId: id,
+    resource: {
       'type': 'anyone',
       'role': 'reader',
     },
