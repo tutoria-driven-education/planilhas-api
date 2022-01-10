@@ -48,7 +48,7 @@ async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTempla
       console.log("Again: Write file")
 
     })
-  }, { concurrency: 10 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  }, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
 async function uploadSpreadsheetStudents(auth, folderId, idSpreadsheetStudents) {
