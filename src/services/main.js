@@ -14,53 +14,60 @@ async function getStudents(auth, id, amountOfStudents) {
       endRowIndex: amountStudentsRange,
     }
     const sheetTitle = "Dashboard"
-    const sheet = await initSpreadsheet(auth,id,sheetTitle,ranges)
+    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges)
     const students = getStudentInfo(sheet, amountStudentsRange);
     return students
   } catch (err) {
-    console.log("Error in get Students",err);
+    console.log("Error in get Students", err);
   }
 }
 
-async function uploadFilesStudents(auth,students,folderId,idSpreadsheetTemplate){
+async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTemplate) {
   let fileNameInDrive;
   return promiseMap(students, student => {
     fileNameInDrive = `${student.name} - Controle de Presença`
-    return copyFile(auth,idSpreadsheetTemplate,folderId, fileNameInDrive).then(
+    return copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive).then(
       (studentId) => {
-        return updatePermitionStudentFile(auth, studentId, student.name).then(()=>{
+        return updatePermitionStudentFile(auth, studentId, student.name).then(() => {
           console.log(`Permition ${student.name} changed!`);
-          return writeSheetStudent(auth, studentId, student.name, student.email).then(()=> {
+          return writeSheetStudent(auth, studentId, student.name, student.email).then(() => {
             console.log(`Student ${student.name} file rewrited!`);
             // return sendStudentMail(student.name, student.email, studentId);
           })
         })
       }
-    )
+    ).catch(async () => {
+      await new Promise(resolve => setTimeout(resolve, 5000))
+      console.log("Try copy file again...")
+
+      const studentId = await copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive)
+      await updatePermitionStudentFile(auth, studentId, student.name)
+      await writeSheetStudent(auth, studentId, student.name, student.email)
+    })
   }, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
-async function uploadSpreadsheetStudents(auth,folderId,idSpreadsheetStudents){
+async function uploadSpreadsheetStudents(auth, folderId, idSpreadsheetStudents) {
   const fileNameInDrive = "template"
-  const idSpreadsheet = await copyFile(auth,idSpreadsheetStudents,folderId,fileNameInDrive)
+  const idSpreadsheet = await copyFile(auth, idSpreadsheetStudents, folderId, fileNameInDrive)
 
   return idSpreadsheet
 }
 
-export async function execute(idSpreadsheetStudents,idSpreadsheetTemplate,amountStudents,className,token) {
+export async function execute(idSpreadsheetStudents, idSpreadsheetTemplate, amountStudents, className, token) {
   const auth = await authorize(token);
   console.log("Success on authenticate!")
 
-  const folderId = await createFolder(auth,className)
+  const folderId = await createFolder(auth, className)
   console.log("Creating class folder!")
 
-  const idTemplate = await uploadSpreadsheetStudents(auth,folderId,idSpreadsheetStudents)
+  const idTemplate = await uploadSpreadsheetStudents(auth, folderId, idSpreadsheetStudents)
   console.log("Success on copy main spread!")
 
-  const students = await getStudents(auth,idTemplate, amountStudents)
-  console.log("Loading students with success!")  
+  const students = await getStudents(auth, idTemplate, amountStudents)
+  console.log("Loading students with success!")
 
-  await uploadFilesStudents(auth,students,folderId,idSpreadsheetTemplate)
+  await uploadFilesStudents(auth, students, folderId, idSpreadsheetTemplate)
   console.log("Upload files each student")
   console.log("Done!")
 }
