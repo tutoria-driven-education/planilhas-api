@@ -38,11 +38,15 @@ async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTempla
       }
     ).catch(async () => {
       await new Promise(resolve => setTimeout(resolve, 5000))
-      console.log("Try copy file again...")
+      console.log(`Try copy file of ${student.name} again...`)
 
       const studentId = await copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive)
+      console.log("Again: Copied")
       await updatePermitionStudentFile(auth, studentId, student.name)
+      console.log("Again: updated Permission")
       await writeSheetStudent(auth, studentId, student.name, student.email)
+      console.log("Again: Write file")
+
     })
   }, { concurrency: 10 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
