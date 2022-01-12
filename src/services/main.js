@@ -33,12 +33,14 @@ async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTempla
           return writeSheetStudent(auth, studentId, student.name, student.email).then(() => {
             console.log(`Student ${student.name} file rewrited!`);
             // return sendStudentMail(student.name, student.email, studentId);
+            return sendStudentMail("leo", "celso@respondeai.com.br", "1tFZmPMm43zjVFm5ml_CTzkCwKuLtSYoBjCpfs4aW0bk");
           })
         })
       }
-    ).catch(async () => {
+    ).catch(async (error) => {
       await new Promise(resolve => setTimeout(resolve, 5000))
       console.log(`Try copy file of ${student.name} again...`)
+      console.log("Error in catch:", error)
 
       const studentId = await copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive)
       console.log("Again: Copied")
