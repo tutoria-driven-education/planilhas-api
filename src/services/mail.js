@@ -3,14 +3,11 @@ import mailTemplate from "../templates/mail.js"
 
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
     const mail = NodeMailer.createTransport({
-        service: 'gmail',
-        secure: false,
+        host: 'smtp.mailtrap.io',
+        port: 2525,
         auth: {
             user: process.env.EMAIL_USERNAME,
             pass: process.env.EMAIL_PASSWORD
-        },
-        tls: {
-            rejectUnauthorized: false
         }
     });
     const template = mailTemplate(studentName, sheetId)
