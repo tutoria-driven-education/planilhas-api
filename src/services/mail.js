@@ -3,16 +3,19 @@ import mailTemplate from "../templates/mail.js"
 
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
     const mail = NodeMailer.createTransport({
-        host: 'smtp.mailtrap.io',
-        port: 2525,
+        host: 'gmail',
+        secure: false,
         auth: {
             user: process.env.EMAIL_USERNAME,
             pass: process.env.EMAIL_PASSWORD
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
     const template = mailTemplate(studentName, sheetId)
     var mailOptions = {
-        from: "celso@respondeai.com.br",
+        from: process.env.EMAIL_USERNAME,
         to: studentEmail,
         subject: `Olá ${studentName}! Sua planilha individual de presença está pronta`,
         html: template
