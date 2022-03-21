@@ -4,9 +4,13 @@ import mailTemplate from "../templates/mail.js"
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
     const mail = NodeMailer.createTransport({
         service: 'gmail',
+        secure: false,
         auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
     const template = mailTemplate(studentName, sheetId)
@@ -17,11 +21,11 @@ export default function sendStudentMail(studentName, studentEmail, sheetId) {
         html: template
     }
 
-    return mail.sendMail(mailOptions, (error, _info)=>{
+    return mail.sendMail(mailOptions, (error, _info) => {
         if (error) {
-        console.log('Error sending email: ', error);
+            console.log('Error sending email: ', error);
         } else {
-        console.log(`Email sended to student ${studentName}`);
+            console.log(`Email sended to student ${studentName}`);
         }
     });
 }
