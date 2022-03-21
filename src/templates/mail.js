@@ -499,7 +499,7 @@ export default function mailTemplate(studentName, spreadId) {
                                         font-size: 14px;
                                         line-height: 19.6px;
                                       "
-                                      >@Mafê</span
+                                      >@Dudu</span
                                     > no slack ou 
                                     <span
                                       style="
@@ -509,10 +509,10 @@ export default function mailTemplate(studentName, spreadId) {
                                       "
                                       ><a
                                         style="color: #ff4791"
-                                        href="mailto:maria.fernanda@driven.com.br"
+                                        href="mailto:eduardo.grossmann@driven.com.br"
                                         target="_blank"
                                         rel="noopener"
-                                        >maria.fernanda@driven.com.br</a
+                                        >eduardo.grossmann@driven.com.br</a
                                       ></span
                                     >
                                   </p>

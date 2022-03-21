@@ -2,7 +2,6 @@ import NodeMailer from "nodemailer";
 import mailTemplate from "../templates/mail.js"
 
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
-    // Testando novamente
     const mail = NodeMailer.createTransport({
         service: 'gmail',
         auth: {
