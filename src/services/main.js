@@ -18,7 +18,7 @@ async function getStudents(auth, id, amountOfStudents) {
     const students = getStudentInfo(sheet, amountStudentsRange);
     return students
   } catch (err) {
-    console.log("Error in get Students", err);
+    console.log("Error in get Students: ", err?.message);
   }
 }
 
@@ -32,15 +32,18 @@ async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTempla
           console.log(`Permition ${student.name} changed!`);
           return writeSheetStudent(auth, studentId, student.name, student.email).then(() => {
             console.log(`Student ${student.name} file rewrited!`);
-            return sendStudentMail(student.name, student.email, studentId);
-            // return sendStudentMail("leo", "celso@respondeai.com.br", "1tFZmPMm43zjVFm5ml_CTzkCwKuLtSYoBjCpfs4aW0bk");
+            // return sendStudentMail(student.name, student.email, studentId);
+          }).catch((err) => {
+            console.log("writeSheetStudent", err?.message);
           })
+        }).catch((err) => {
+          console.log("updatePermitionStudentFile", err?.message);
         })
       }
-    ).catch(async (error) => {
+    ).catch(async (err) => {
       await new Promise(resolve => setTimeout(resolve, 5000))
       console.log(`Try copy file of ${student.name} again...`)
-      console.log("Error in catch:", error)
+      console.log("Error in catch:", err?.message)
 
       const studentId = await copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive)
       console.log("Again: Copied")
@@ -69,7 +72,6 @@ export async function execute(idSpreadsheetStudents, idSpreadsheetTemplate, amou
 
   const idTemplate = await uploadSpreadsheetStudents(auth, folderId, idSpreadsheetStudents)
   console.log("Success on copy main spread!")
-
   const students = await getStudents(auth, idTemplate, amountStudents)
   console.log("Loading students with success!")
 

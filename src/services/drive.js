@@ -21,9 +21,9 @@ export async function uploadFile(auth, fileNameInDrive, path, folderId) {
     }));
 
     return request.data.id
-  } catch (error) {
-    console.log(error)
-    if (error.code === 500) uploadFile(auth, fileNameInDrive, path, folderId);
+  } catch (err) {
+    console.log("Upload ", err?.message)
+    if (err.code === 500) uploadFile(auth, fileNameInDrive, path, folderId);
   }
 }
 
@@ -43,7 +43,7 @@ export async function createFolder(auth, className) {
     );
     return request.data.id;
   } catch (err) {
-    console.log(err);
+    console.log("Create folder", err?.message);
   }
 }
 
@@ -60,8 +60,8 @@ export async function copyFile(auth, id, folderId, nameFile) {
       }
     }))
     return request.data.id
-  } catch (error) {
-    console.log("Error in copy file!", error)
+  } catch (err) {
+    console.log("Error in copy file!", err?.message)
     throw new Error("Error in copy file")
   }
 }

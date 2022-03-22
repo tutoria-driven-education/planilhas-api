@@ -17,9 +17,9 @@ export default function sendStudentMail(studentName, studentEmail, sheetId) {
         html: template
     }
 
-    return mail.sendMail(mailOptions, (error, _info) => {
-        if (error) {
-            console.log('Error sending email: ', error);
+    return mail.sendMail(mailOptions, (err, _info) => {
+        if (err) {
+            console.log('Error sending email: ', err?.message);
         } else {
             console.log(`Email sended to student ${studentName}`);
         }
