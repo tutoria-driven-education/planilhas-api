@@ -1,47 +1,47 @@
-import {
-  GoogleSpreadsheet
-} from 'google-spreadsheet'
+import { GoogleSpreadsheet } from "google-spreadsheet";
 
-export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
-  const doc = new GoogleSpreadsheet(id)
+export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+  const doc = new GoogleSpreadsheet(id);
 
-  doc.useOAuth2Client(auth)
+  doc.useOAuth2Client(auth);
 
   try {
-    await doc.loadInfo()
-    const sheet = doc.sheetsByTitle[sheetTitle]
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle[sheetTitle];
 
-    await sheet.loadCells(ranges)
+    if (ranges) {
+      await sheet.loadCells(ranges);
+    } else {
+      await sheet.loadCells();
+    }
 
-    return sheet
+    return sheet;
   } catch (err) {
-    console.log("Error in Init spreadsheet", err?.message)
+    console.log("Error in Init spreadsheet", err?.message);
   }
-
-
 }
 
 export async function writeSheetStudent(auth, id, studentName, studentEmail) {
-  const sheetTitle = "Controle"
+  const sheetTitle = "Controle";
   const ranges = {
     startColumnIndex: 0,
     endColumnIndex: 4,
     startRowIndex: 0,
     endRowIndex: 20,
-  }
-  const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges)
+  };
+  const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges);
 
-  const nomeCell = sheet.getCell(15, 0)
-  nomeCell.value = studentName
-  const emailCell = sheet.getCell(15, 1)
-  emailCell.value = studentEmail
+  const nomeCell = sheet.getCell(15, 0);
+  nomeCell.value = studentName;
+  const emailCell = sheet.getCell(15, 1);
+  emailCell.value = studentEmail;
 
   return await sheet.saveUpdatedCells();
 }
 
 export function getStudentInfo(sheet, amountOfStudents) {
   const students = [];
-  const initialRowStudents = 11
+  const initialRowStudents = 11;
   for (let i = initialRowStudents; i < amountOfStudents; i++) {
     const name = sheet.getCell(i, 0).value;
     const email = sheet.getCell(i, 1).value;
