@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { promiseMap } from "../lib/promiseMap.js";
 import { authorize } from "./auth.js";
 import {
@@ -107,8 +106,7 @@ async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
       await copyToNewSheet(file, templateSheet);
       await alterSheetNameAndInfo(auth, file, pageName);
     } catch (err) {
-      console.log(err?.message);
-      console.log(`Error in process of file ${file.name}`);
+      throw new Error(`Error in process of file ${file.name}`, err?.message);
     }
   }
 

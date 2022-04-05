@@ -24,7 +24,7 @@
     "object-curly-spacing": ["error", "always"],
     "padded-blocks": ["error", "never"],
     "eol-last": ["error", "always"],
-    "no-console": "warn",
+    "no-console": "off",
     "comma-spacing": [
       "error",
       {

@@ -4,7 +4,6 @@ import * as mainController from "../controllers/main.js";
 const router = Router();
 
 router.get("/test", (req, res) => {
-  // eslint-disable-next-line no-console
   console.log("rodando...");
   return res.send("Rodando");
 });

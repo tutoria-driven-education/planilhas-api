@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import NodeMailer from "nodemailer";
 import mailTemplate from "../templates/mail.js";
 

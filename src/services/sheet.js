@@ -1,5 +1,5 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { delay } from "../utils/index.js";
+import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
 export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
@@ -70,7 +70,6 @@ export async function writeSheetStudent(
         },
       });
     }
-    // eslint-disable-next-line no-console
     console.log(`TRYING: Tentando escrever novamente o arquivo ${studentName}`);
     await delay(5000);
     await writeSheetStudent(
@@ -109,17 +108,17 @@ export async function alterSheetNameAndInfo(auth, file, title) {
   try {
     const copyTitle = `Cópia de ${title}`;
     const sheet = await initSpreadsheet(auth, file.id, copyTitle);
-    const index = file.name.indexOf("-");
-    const studentName = file.name.slice(0, index - 1);
+    const studentName = extractStudentNameByFileName(file.name);
 
     const nameCell = sheet.getCell(0, 1);
     nameCell.value = studentName;
 
-    await sheet.updateProperties({
+    const updatePropertiesPromise = sheet.updateProperties({
       title,
     });
-    await sheet.saveUpdatedCells();
-    // eslint-disable-next-line no-console
+    const saveSheetCellsPromise = sheet.saveUpdatedCells();
+
+    await Promise.all([updatePropertiesPromise, saveSheetCellsPromise]);
     console.log(`Page altered on file ${file.name}`);
     return;
   } catch (err) {
