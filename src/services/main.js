@@ -89,9 +89,9 @@ async function uploadFilesStudents(
       );
       console.log(`Student ${studentName} file rewritten!`);
       // await sendStudentMail(student.name, student.email, studentId);
-    } catch (err) {
-      logger.error(
-        `Error in process of student ${studentName} err: ${err?.message}`
+    } catch (error) {
+      logger.info(
+        `Error in process of student ${studentName} error: ${error?.message}`
       );
       // console.log("Erro no processo geral")
     }
