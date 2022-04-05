@@ -68,14 +68,14 @@ async function uploadFilesStudents(
       console.log(`Student ${studentName} file rewritten!`);
       // await sendStudentMail(student.name, student.email, studentId);
     } catch (error) {
-      logger.error(
+      logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
       );
       // console.log("Erro no processo geral")
     }
   }
 
-  return promiseMap(students, createStudentComplete, { concurrency: 10 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  return promiseMap(students, createStudentComplete, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
 async function uploadSpreadsheetStudents(
