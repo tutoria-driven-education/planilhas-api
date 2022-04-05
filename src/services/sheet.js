@@ -4,7 +4,6 @@ import { logger } from "../utils/logger.js";
 
 export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   const doc = new GoogleSpreadsheet(id);
-
   doc.useOAuth2Client(auth);
 
   try {
@@ -108,19 +107,18 @@ export async function alterSheetNameAndInfo(auth, file, title) {
   try {
     const copyTitle = `Cópia de ${title}`;
     const sheet = await initSpreadsheet(auth, file.id, copyTitle);
-    const studentName = extractStudentNameByFileName(file.name);
+    const studentName = extractStudentNameByFileName(file);
 
     const nameCell = sheet.getCell(0, 1);
     nameCell.value = studentName;
 
-    const updatePropertiesPromise = sheet.updateProperties({
+    await sheet.saveUpdatedCells();
+    
+    await sheet.updateProperties({
       title,
     });
-    const saveSheetCellsPromise = sheet.saveUpdatedCells();
 
-    await Promise.all([updatePropertiesPromise, saveSheetCellsPromise]);
-    console.log(`Page altered on file ${file.name}`);
-    return;
+    return console.log(`Page altered on file ${file.name}`);
   } catch (err) {
     throw new Error(
       `Error when altering at new sheet on document ${file.name}`
