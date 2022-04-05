@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createReadStream } from "fs";
 import { google } from "googleapis";
 import { delay } from "../utils/index.js";
@@ -72,7 +73,7 @@ export async function copyFile(
       })
     );
     return request.data.id;
-  } catch (err) {
+  } catch (error) {
     const operation = operationsFailed.find(
       (op) => op.id === id && op.name == "copy_name"
     );
@@ -141,7 +142,7 @@ export async function updatePermissionStudentFile(
         name: "update_permission",
       });
     }
-    console.log(`TRYING: Tentando atualizar permissao no arquivo `);
+    console.log("TRYING: Tentando atualizar permissao no arquivo");
     await delay(5000);
     await updatePermissionStudentFile(auth, id, operationsFailed);
   }

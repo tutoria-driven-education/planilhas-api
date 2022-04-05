@@ -2,7 +2,7 @@ import { GoogleSpreadsheet } from "google-spreadsheet";
 import { delay } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
-export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
   const doc = new GoogleSpreadsheet(id);
 
   doc.useOAuth2Client(auth);
@@ -11,11 +11,7 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
     await doc.loadInfo();
     const sheet = doc.sheetsByTitle[sheetTitle];
 
-    if (ranges) {
-      await sheet.loadCells(ranges);
-    } else {
-      await sheet.loadCells();
-    }
+    await sheet.loadCells(ranges);
 
     return sheet;
   } catch (err) {
@@ -70,6 +66,7 @@ export async function writeSheetStudent(
         },
       });
     }
+    // eslint-disable-next-line no-console
     console.log(`TRYING: Tentando escrever novamente o arquivo ${studentName}`);
     await delay(5000);
     await writeSheetStudent(

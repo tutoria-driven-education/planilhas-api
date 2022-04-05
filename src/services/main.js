@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { promiseMap } from "../lib/promiseMap.js";
 import { authorize } from "./auth.js";
 import {
