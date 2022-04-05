@@ -1,5 +1,7 @@
 import { createReadStream } from "fs";
 import { google } from "googleapis";
+import { delay } from "../utils/index.js";
+import { logger } from "../utils/logger.js";
 
 export async function uploadFile(auth, fileNameInDrive, path, folderId) {
   const drive = google.drive({ version: "v3", auth });
@@ -49,7 +51,13 @@ export async function createFolder(auth, className) {
   }
 }
 
-export async function copyFile(auth, id, folderId, nameFile) {
+export async function copyFile(
+  auth,
+  id,
+  folderId,
+  nameFile,
+  operationsFailed = []
+) {
   const drive = google.drive({ version: "v3", auth });
 
   try {
@@ -65,24 +73,78 @@ export async function copyFile(auth, id, folderId, nameFile) {
     );
     return request.data.id;
   } catch (err) {
-    console.log("Error in copy file!", err?.message);
-    throw new Error("Error in copy file");
+    const operation = operationsFailed.find(
+      (op) => op.id === id && op.name == "copy_name"
+    );
+    if (operation !== undefined) {
+      if (operation?.limit >= 5) {
+        logger.error(
+          `Don't copy file ${nameFile} error: ${error?.message} attempts:${operation.limit}`
+        );
+        throw new Error("Não foi possivel copiar", nameFile);
+      } else {
+        operation.limit += 1;
+      }
+    } else {
+      operationsFailed.push({
+        id,
+        name: "copy_file",
+        limit: 0,
+        data: {
+          folderId,
+          nameFile,
+        },
+      });
+    }
+    console.log(`TRYING: Tentando copiar novamente o arquivo ${nameFile}`);
+    await delay(5000);
+    await copyFile(auth, id, folderId, nameFile, operationsFailed);
   }
 }
 
-export function updatePermitionStudentFile(auth, id) {
+export async function updatePermissionStudentFile(
+  auth,
+  id,
+  operationsFailed = []
+) {
   const drive = google.drive({ version: "v3", auth });
 
-  return Promise.resolve(
-    drive.permissions.create({
-      fileId: id,
-      resource: {
-        type: "anyone",
-        role: "reader",
-      },
-      fields: "id",
-    })
-  );
+  try {
+    const request = Promise.resolve(
+      drive.permissions.create({
+        fileId: id,
+        resource: {
+          type: "anyone",
+          role: "reader",
+        },
+        fields: "id",
+      })
+    );
+    return request;
+  } catch (error) {
+    const operation = operationsFailed.find(
+      (op) => op.id === id && op.name == "update_permission"
+    );
+    if (operation !== undefined) {
+      if (operation.limit >= 5) {
+        logger.error(
+          `Can not update permissions; error: ${error?.message} attempts:${operation.limit}`
+        );
+        throw new Error("Não foi possivel atualizar permissao");
+      } else {
+        operation.limit += 1;
+      }
+    } else {
+      operationsFailed.push({
+        id,
+        limit: 0,
+        name: "update_permission",
+      });
+    }
+    console.log(`TRYING: Tentando atualizar permissao no arquivo `);
+    await delay(5000);
+    await updatePermissionStudentFile(auth, id, operationsFailed);
+  }
 }
 
 export async function getIdsInsideFolder(auth, id) {

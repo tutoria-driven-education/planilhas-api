@@ -18,7 +18,8 @@
     "express": "^4.17.3",
     "google-spreadsheet": "^3.2.0",
     "googleapis": "^100.0.0",
-    "nodemailer": "^6.7.3"
+    "nodemailer": "^6.7.3",
+    "winston": "^3.7.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
