@@ -7,11 +7,10 @@ import {
   getIdsInsideFolder,
 } from "./drive.js";
 import { getStudentInfo, initSpreadsheet, writeSheetStudent } from "./sheet.js";
-import { getStudentInfo, initSpreadsheet, writeSheetStudent } from './sheet.js';
-import sendStudentMail from "./mail.js"
+import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
 
-const operationsFailed = []
+const operationsFailed = [];
 
 async function getStudents(auth, id, amountOfStudents) {
   const amountStudentsRange = parseInt(amountOfStudents) + 11; //initial row students
@@ -51,27 +50,49 @@ async function getPageToCopyInformation(auth, id, pageName) {
   return await initSpreadsheet(auth, id, pageName);
 }
 
-async function uploadFilesStudents(auth, students, folderId, idSpreadsheetTemplate) {
+async function uploadFilesStudents(
+  auth,
+  students,
+  folderId,
+  idSpreadsheetTemplate
+) {
   async function createStudentComplete(student) {
-    let studentName = student.name
-    let fileNameInDrive = `${studentName} - Controle de Presença`
+    let studentName = student.name;
+    let fileNameInDrive = `${studentName} - Controle de Presença`;
 
     try {
-      const studentId = await copyFile(auth, idSpreadsheetTemplate, folderId, fileNameInDrive, operationsFailed)
-      console.log(`Copy file ${fileNameInDrive} with success!`)
+      const studentId = await copyFile(
+        auth,
+        idSpreadsheetTemplate,
+        folderId,
+        fileNameInDrive,
+        operationsFailed
+      );
+      console.log(`Copy file ${fileNameInDrive} with success!`);
 
-      await updatePermissionStudentFile(auth, studentId, studentName, operationsFailed)
+      await updatePermissionStudentFile(
+        auth,
+        studentId,
+        studentName,
+        operationsFailed
+      );
       console.log(`Update permission ${studentName} with success!`);
 
-      await writeSheetStudent(auth, studentId, studentName, student.email, operationsFailed)
+      await writeSheetStudent(
+        auth,
+        studentId,
+        studentName,
+        student.email,
+        operationsFailed
+      );
       console.log(`Student ${studentName} file rewritten!`);
       // await sendStudentMail(student.name, student.email, studentId);
-
     } catch (error) {
-      logger.error(`Error in process of student ${studentName} error: ${error?.message}`)
+      logger.error(
+        `Error in process of student ${studentName} error: ${error?.message}`
+      );
       // console.log("Erro no processo geral")
     }
-
   }
 
   return promiseMap(students, createStudentComplete, { concurrency: 10 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
@@ -128,6 +149,4 @@ export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
   console.log("Success on getting files id!");
 
   await createNewPage(arrayFilesId, pageInfomation);
-
 }
-
