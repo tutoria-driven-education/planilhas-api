@@ -13,7 +13,7 @@ export async function execute(req, res) {
   const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents);
   const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  const request = await mainService.execute(
+  await mainService.execute(
     idSpreadsheetStudents,
     idSpreadsheetTemplate,
     amountStudents,

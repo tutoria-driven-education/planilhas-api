@@ -150,12 +150,12 @@ export async function updatePermissionStudentFile(
 
 export async function getIdsInsideFolder(auth, id) {
   const drive = google.drive({ version: "v3", auth });
-  const index = id?.indexOf("?");
-  const newId = index > -1 ? id.slice(0, index) : id;
+  const urlQueryIndex = id?.indexOf("?");
+  const newId = urlQueryIndex > -1 ? id.slice(0, urlQueryIndex) : id;
   try {
     return await Promise.resolve(
       drive.files.list({
-        fields: "files(id)",
+        fields: "files(id, name)",
         q: `'${newId}' in parents and name contains 'Controle de Presença'`,
       })
     );

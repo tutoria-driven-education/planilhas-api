@@ -7,7 +7,13 @@ import {
   updatePermissionStudentFile,
   getIdsInsideFolder,
 } from "./drive.js";
-import { getStudentInfo, initSpreadsheet, writeSheetStudent } from "./sheet.js";
+import {
+  getStudentInfo,
+  initSpreadsheet,
+  writeSheetStudent,
+  copyToNewSheet,
+  alterSheetNameAndInfo,
+} from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
 
@@ -45,10 +51,6 @@ async function uploadSpreadsheetStudents(
   );
 
   return idSpreadsheet;
-}
-
-async function getPageToCopyInformation(auth, id, pageName) {
-  return await initSpreadsheet(auth, id, pageName);
 }
 
 async function uploadFilesStudents(
@@ -99,14 +101,19 @@ async function uploadFilesStudents(
   return promiseMap(students, createStudentComplete, { concurrency: 10 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
-async function getFilesIds(auth, id) {
-  const {
-    data: { files },
-  } = await getIdsInsideFolder(auth, id);
-  return files;
-}
+async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
+  async function updateStudentsFiles(file) {
+    try {
+      await copyToNewSheet(file, templateSheet);
+      await alterSheetNameAndInfo(auth, file, pageName);
+    } catch (err) {
+      console.log(err?.message);
+      console.log(`Error in process of file ${file.name}`);
+    }
+  }
 
-async function createNewPage(arrayFilesId, pageInfomation) {}
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+}
 
 export async function execute(
   idSpreadsheetStudents,
@@ -139,15 +146,14 @@ export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
 
-  const pageInfomation = await getPageToCopyInformation(
-    auth,
-    idSpreadsheet,
-    pageName
-  );
-  console.log("Success on copy page!");
+  const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
+  console.log("Success on loading page!");
 
-  const arrayFilesId = await getFilesIds(auth, folderId);
+  const {
+    data: { files: arrayFiles },
+  } = await getIdsInsideFolder(auth, folderId);
   console.log("Success on getting files id!");
 
-  await createNewPage(arrayFilesId, pageInfomation);
+  await createNewPage(auth, arrayFiles, templateSheet, pageName);
+  console.log("Done!");
 }

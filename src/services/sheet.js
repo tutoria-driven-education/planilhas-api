@@ -2,7 +2,7 @@ import { GoogleSpreadsheet } from "google-spreadsheet";
 import { delay } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
-export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
+export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   const doc = new GoogleSpreadsheet(id);
 
   doc.useOAuth2Client(auth);
@@ -11,7 +11,11 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
     await doc.loadInfo();
     const sheet = doc.sheetsByTitle[sheetTitle];
 
-    await sheet.loadCells(ranges);
+    if (ranges) {
+      await sheet.loadCells(ranges);
+    } else {
+      await sheet.loadCells();
+    }
 
     return sheet;
   } catch (err) {
@@ -89,4 +93,38 @@ export function getStudentInfo(sheet, amountOfStudents) {
     students.push({ name, email });
   }
   return students;
+}
+
+export async function copyToNewSheet(file, templateSheet) {
+  try {
+    await templateSheet.copyToSpreadsheet(file.id);
+  } catch (err) {
+    throw new Error(
+      `Error when inserting at new sheet on document ${file.name}`
+    );
+  }
+}
+
+export async function alterSheetNameAndInfo(auth, file, title) {
+  try {
+    const copyTitle = `Cópia de ${title}`;
+    const sheet = await initSpreadsheet(auth, file.id, copyTitle);
+    const index = file.name.indexOf("-");
+    const studentName = file.name.slice(0, index - 1);
+
+    const nameCell = sheet.getCell(0, 1);
+    nameCell.value = studentName;
+
+    await sheet.updateProperties({
+      title,
+    });
+    await sheet.saveUpdatedCells();
+    // eslint-disable-next-line no-console
+    console.log(`Page altered on file ${file.name}`);
+    return;
+  } catch (err) {
+    throw new Error(
+      `Error when altering at new sheet on document ${file.name}`
+    );
+  }
 }
