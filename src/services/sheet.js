@@ -1,6 +1,8 @@
 import {
   GoogleSpreadsheet
 } from 'google-spreadsheet'
+import { delay } from '../utils/index.js'
+import { logger } from '../utils/logger.js'
 
 export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
   const doc = new GoogleSpreadsheet(id)
@@ -15,13 +17,13 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges) {
 
     return sheet
   } catch (err) {
-    console.log("Error in Init spreadsheet", err?.message)
+    throw new Error('Error in init spreadsheet')
   }
 
 
 }
 
-export async function writeSheetStudent(auth, id, studentName, studentEmail) {
+export async function writeSheetStudent(auth, id, studentName, studentEmail, operationsFailed = []) {
   const sheetTitle = "Controle"
   const ranges = {
     startColumnIndex: 0,
@@ -29,14 +31,41 @@ export async function writeSheetStudent(auth, id, studentName, studentEmail) {
     startRowIndex: 0,
     endRowIndex: 20,
   }
-  const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges)
+  try {
+    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges)
 
-  const nomeCell = sheet.getCell(15, 0)
-  nomeCell.value = studentName
-  const emailCell = sheet.getCell(15, 1)
-  emailCell.value = studentEmail
+    const nomeCell = sheet.getCell(15, 0)
+    nomeCell.value = studentName
+    const emailCell = sheet.getCell(15, 1)
+    emailCell.value = studentEmail
 
-  return await sheet.saveUpdatedCells();
+    return await sheet.saveUpdatedCells();
+  } catch (error) {
+    const operation = operationsFailed.find(op => (op.id === id && op.name == "write_sheet"))
+    if (operation !== undefined) {
+      if (operation.limit >= 5) {
+        logger.error(`Can not write file  ${studentName} error: ${error?.message} attempts:${operation.limit}`)
+        throw new Error("Não foi possivel escrever no arquivo", studentName)
+      }
+      else {
+        operation.limit += 1
+      }
+    } else {
+      operationsFailed.push({
+        id,
+        name: "write_sheet",
+        limit: 0,
+        data: {
+          studentName,
+          studentEmail
+        }
+      })
+    }
+    console.log(`TRYING: Tentando escrever novamente o arquivo ${studentName}`)
+    await delay(5000)
+    await writeSheetStudent(auth, id, studentName, studentEmail, operationsFailed)
+  }
+
 }
 
 export function getStudentInfo(sheet, amountOfStudents) {
