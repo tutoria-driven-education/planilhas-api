@@ -7,3 +7,5 @@ node_modules
 token.json
 credentials.js
 database.sqlite
+trash.txt
+register.json
