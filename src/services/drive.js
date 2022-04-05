@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { createReadStream } from "fs";
 import { google } from "googleapis";
 import { delay } from "../utils/index.js";
@@ -145,5 +144,19 @@ export async function updatePermissionStudentFile(
     console.log("TRYING: Tentando atualizar permissao no arquivo");
     await delay(5000);
     await updatePermissionStudentFile(auth, id, operationsFailed);
+  }
+}
+
+export async function getIdsInsideFolder(auth, id) {
+  const drive = google.drive({ version: "v3", auth });
+  try {
+    return await Promise.resolve(
+      drive.files.list({
+        fields: "files(id, name)",
+        q: `'${id}' in parents and name contains 'Controle de Presença'`,
+      })
+    );
+  } catch (err) {
+    throw new Error("Error getting all id's inside folder", err?.message);
   }
 }

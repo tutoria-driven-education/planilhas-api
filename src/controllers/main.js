@@ -13,11 +13,32 @@ export async function execute(req, res) {
   const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents);
   const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  const request = await mainService.execute(
+  await mainService.execute(
     idSpreadsheetStudents,
     idSpreadsheetTemplate,
     amountStudents,
     className,
+    token
+  );
+
+  return res.sendStatus(200);
+}
+
+export async function updateSheet(req, res) {
+  const {
+    folderLinkSpreadsheet,
+    linkSpreadsheetTemplate,
+    spreadsheetPageName,
+    token,
+  } = req.body;
+
+  const folderId = extractIdByUrl(folderLinkSpreadsheet);
+  const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
+
+  await mainService.executeUpdate(
+    folderId,
+    idSpreadsheetTemplate,
+    spreadsheetPageName,
     token
   );
 
