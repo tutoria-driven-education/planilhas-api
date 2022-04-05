@@ -1,7 +1,11 @@
 export const promiseMap = (array, promiseFn, args) => {
-  if (!array) { return Promise.reject('arrayNotIterable'); }
+  if (!array) {
+    return Promise.reject("arrayNotIterable");
+  }
 
-  if (!array.length) { return Promise.resolve([]); }
+  if (!array.length) {
+    return Promise.resolve([]);
+  }
   const concurrency = Math.min(
     (args || {}).concurrency || array.length,
     array.length
@@ -21,7 +25,9 @@ export const promiseMap = (array, promiseFn, args) => {
         .then((result) => {
           finished++;
           results[array.indexOf(item)] = result;
-          if (finished === array.length) { return resolve(results); }
+          if (finished === array.length) {
+            return resolve(results);
+          }
 
           queue.splice(queue.indexOf(itemPromise), 1);
 

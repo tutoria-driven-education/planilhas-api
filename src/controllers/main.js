@@ -1,20 +1,25 @@
-import * as mainService from '../services/main.js'
-import { extractIdByUrl } from '../utils/index.js'
+import * as mainService from "../services/main.js";
+import { extractIdByUrl } from "../utils/index.js";
 
 export async function execute(req, res) {
-  const { linkSpreadsheetStudents,
+  const {
+    linkSpreadsheetStudents,
     linkSpreadsheetTemplate,
     amountStudents,
     className,
-    token } = req.body
+    token,
+  } = req.body;
 
-  const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents)
-  const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate)
+  const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents);
+  const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  const request = await mainService.execute(idSpreadsheetStudents,
+  const request = await mainService.execute(
+    idSpreadsheetStudents,
     idSpreadsheetTemplate,
-    amountStudents, className, token)
+    amountStudents,
+    className,
+    token
+  );
 
-  return res.sendStatus(200)
+  return res.sendStatus(200);
 }
-
