@@ -1,4 +1,5 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
+import { google } from 'googleapis'
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -23,65 +24,66 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   }
 }
 
-export async function writeSheetStudent(
-  auth,
+
+export async function writeSheetStudent(auth,
   id,
   studentName,
   studentEmail,
-  operationsFailed = []
-) {
-  const sheetTitle = "Controle";
-  const ranges = {
-    startColumnIndex: 0,
-    endColumnIndex: 4,
-    startRowIndex: 0,
-    endRowIndex: 20,
-  };
-  try {
-    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges);
-
-    const nomeCell = sheet.getCell(15, 0);
-    nomeCell.value = studentName;
-    const emailCell = sheet.getCell(15, 1);
-    emailCell.value = studentEmail;
-
-    return await sheet.saveUpdatedCells();
-  } catch (error) {
-    const operation = operationsFailed.find(
-      (op) => op.id === id && op.name == "write_sheet"
-    );
-    if (operation !== undefined) {
-      if (operation.limit >= 5) {
-        logger.error(
-          `Can not write file  ${studentName} error: ${error?.message} attempts:${operation.limit}`
-        );
-        throw new Error("Não foi possivel escrever no arquivo", studentName);
-      } else {
-        operation.limit += 1;
-      }
-    } else {
-      operationsFailed.push({
-        id,
-        name: "write_sheet",
-        limit: 0,
-        data: {
-          studentName,
-          studentEmail,
-        },
-      });
-    }
-    console.log(`TRYING: Tentando escrever novamente o arquivo ${studentName}`);
-    await delay(5000);
-    await writeSheetStudent(
+  operationsFailed = []) {
+  const sheet = google.sheets('v4')
+  async function changeName() {
+    const values = new Array(25).fill(Array(0))
+    values[15] = [studentName]
+    values[21] = [studentName]
+    const request = {
+      spreadsheetId: id,
+      range: 'Controle!A1:A25',
+      valueInputOption: 'raw',
       auth,
-      id,
-      studentName,
-      studentEmail,
-      operationsFailed
-    );
+      resource: {
+        values
+      }
+    }
+    try {
+      const response = (await sheet.spreadsheets.values.update(request)).data
+
+      return response
+
+    } catch (error) {
+      console.log("Error in changed Name", error?.message)
+    }
+  }
+  async function changeEmail() {
+    const values = new Array(25).fill(Array(0))
+    values[15] = [studentEmail]
+    values[21] = [studentEmail]
+    const request = {
+      spreadsheetId: id,
+      range: 'Controle!B1:B25',
+      valueInputOption: 'raw',
+      auth,
+      resource: {
+        values
+      }
+    }
+    try {
+      const response = (await sheet.spreadsheets.values.update(request)).data
+
+      return response
+
+    } catch (error) {
+      console.log("Error in change email", error?.message)
+    }
+  }
+
+  try {
+    await changeName();
+    await changeEmail();
+    // await Promise.all([changeEmail, changeName])
+  } catch (error) {
+
   }
 }
-
 export function getStudentInfo(sheet, amountOfStudents) {
   const students = [];
   const initialRowStudents = 11;
