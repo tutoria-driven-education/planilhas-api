@@ -113,7 +113,7 @@ export async function alterSheetNameAndInfo(auth, file, title) {
     nameCell.value = studentName;
 
     await sheet.saveUpdatedCells();
-    
+
     await sheet.updateProperties({
       title,
     });
@@ -124,4 +124,34 @@ export async function alterSheetNameAndInfo(auth, file, title) {
       `Error when altering at new sheet on document ${file.name}`
     );
   }
+}
+
+export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
+  const INITIAL_ROW = 11;
+  const NAME_COLUMN = 0;
+  const PERCENTAGE_COLUMN = 4;
+
+  const students = [];
+
+  let row = INITIAL_ROW;
+  let name, percentage;
+
+  do {
+    try {
+      name = sheet.getCell(row, NAME_COLUMN).value;
+      percentage = sheet.getCell(row, PERCENTAGE_COLUMN).value;
+
+      if (name && percentage && percentage < 0.9)
+        students.push({
+          name,
+          percentage: Number((percentage * 100).toFixed(1)),
+        });
+
+      row++;
+    } catch {
+      throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
+    }
+  } while (name !== "Presença Síncrona" && row < endpoint + 11);
+
+  return students;
 }

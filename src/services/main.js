@@ -12,6 +12,7 @@ import {
   writeSheetStudent,
   copyToNewSheet,
   alterSheetNameAndInfo,
+  getStudentsInfoWithAttendancePercentage,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
@@ -108,7 +109,9 @@ async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
       await alterSheetNameAndInfo(auth, file, pageName);
       console.log(`Alter to file ${file.name} with sucess`);
     } catch (err) {
-      throw new Error(`Error in process of file ${file.name} err: ${err?.message}`);
+      throw new Error(
+        `Error in process of file ${file.name} err: ${err?.message}`
+      );
     }
   }
 
@@ -156,4 +159,32 @@ export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
 
   await createNewPage(auth, arrayFiles, templateSheet, pageName);
   console.log("Done!");
+}
+
+export async function getStudentsUnderNinetyPercent(
+  idSpreadsheet,
+  token,
+  endpoint
+) {
+  const auth = await authorize(token);
+  console.info("Success on authenticate!");
+
+  const amountStudentsRange = parseInt(endpoint) + 11;
+  const ranges = {
+    startColumnIndex: 0,
+    endColumnIndex: 5,
+    startRowIndex: 11,
+    endRowIndex: amountStudentsRange,
+  };
+
+  const sheetTitle = "Dashboard";
+  const sheet = await initSpreadsheet(auth, idSpreadsheet, sheetTitle, ranges);
+
+  const studentsInfo = await getStudentsInfoWithAttendancePercentage(
+    sheet,
+    endpoint
+  );
+  console.info("Loading students with success!");
+
+  return studentsInfo;
 }
