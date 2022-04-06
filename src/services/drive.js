@@ -97,7 +97,7 @@ export async function copyFile(
       });
     }
     console.log(`TRYING: Tentando copiar novamente o arquivo ${nameFile}`);
-    await delay(5000);
+    await delay(10000);
     await copyFile(auth, id, folderId, nameFile, operationsFailed);
   }
 }
