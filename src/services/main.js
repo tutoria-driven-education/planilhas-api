@@ -11,41 +11,12 @@ import {
   writeSheetStudent,
   copyToNewSheet,
   alterSheetNameAndInfo,
+  getStudents
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
-import { google } from "googleapis";
 
 const operationsFailed = [];
-
-async function getStudents(auth, id, amountOfStudents) {
-  const sheetTitle = "Dashboard";
-  const initRowStudents = 12;
-  const lastRowStudents = parseInt(amountOfStudents) + initRowStudents;
-  const request = {
-    spreadsheetId: id,
-    range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
-    dateTimeRenderOption: "FORMATTED_STRING",
-    valueRenderOption: "UNFORMATTED_VALUE",
-    auth,
-  };
-  console.log(JSON.stringify(request, null, 2));
-  const sheet = google.sheets("v4");
-
-  try {
-    const response = (await sheet.spreadsheets.values.get(request)).data;
-    const studentsInfo = response.values.map(student => (
-      {
-        name: student[0],
-        email: student[1],
-      }
-    ));
-
-    return studentsInfo;
-  } catch (error) {
-    console.log("deu ruim em pegar os alunos", error?.message);
-  }
-}
 
 async function uploadFilesStudents(
   auth,
@@ -88,7 +59,6 @@ async function uploadFilesStudents(
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
       );
-      // console.log("Erro no processo geral")
     }
   }
 
