@@ -6,9 +6,13 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   const doc = new GoogleSpreadsheet(id);
   doc.useOAuth2Client(auth);
 
+  
+
   try {
     await doc.loadInfo();
     const sheet = doc.sheetsByTitle[sheetTitle];
+    
+    if(!sheet) return null
 
     if (ranges) {
       await sheet.loadCells(ranges);
@@ -18,6 +22,7 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
 
     return sheet;
   } catch (err) {
+    console.log(err);
     throw new Error("Error in init spreadsheet");
   }
 }
@@ -46,6 +51,7 @@ export async function writeSheetStudent(
 
     return await sheet.saveUpdatedCells();
   } catch (error) {
+    
     const operation = operationsFailed.find(
       (op) => op.id === id && op.name == "write_sheet"
     );
@@ -107,6 +113,7 @@ export async function alterSheetNameAndInfo(auth, file, title) {
   try {
     const copyTitle = `Cópia de ${title}`;
     const sheet = await initSpreadsheet(auth, file.id, copyTitle);
+
     const studentName = extractStudentNameByFileName(file);
 
     const nameCell = sheet.getCell(0, 1);

@@ -103,8 +103,17 @@ async function uploadFilesStudents(
 async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
   async function updateStudentsFiles(file) {
     try {
+
+      const page = await initSpreadsheet(auth, file.id, pageName );
+
+      if(page) {
+        console.log(`Page ${pageName} already exists. Deleting it...`);
+        await page.delete()
+      }
+            
       await copyToNewSheet(file, templateSheet);
       console.log(`Copy to file ${file.name} with sucess`);
+
       await alterSheetNameAndInfo(auth, file, pageName);
       console.log(`Alter to file ${file.name} with sucess`);
     } catch (err) {
@@ -147,6 +156,7 @@ export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
   console.log("Success on authenticate!");
 
   const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
+   
   console.log("Success on loading page!");
 
   const {
