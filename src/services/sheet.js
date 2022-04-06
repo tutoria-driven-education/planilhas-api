@@ -6,8 +6,6 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   const doc = new GoogleSpreadsheet(id);
   doc.useOAuth2Client(auth);
 
-  
-
   try {
     await doc.loadInfo();
     const sheet = doc.sheetsByTitle[sheetTitle];
@@ -22,7 +20,6 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
 
     return sheet;
   } catch (err) {
-    console.log(err);
     throw new Error("Error in init spreadsheet");
   }
 }
