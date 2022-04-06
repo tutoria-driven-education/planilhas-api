@@ -7,7 +7,6 @@ import {
   getIdsInsideFolder,
 } from "./drive.js";
 import {
-  getStudentInfo,
   initSpreadsheet,
   writeSheetStudent,
   copyToNewSheet,
@@ -15,53 +14,37 @@ import {
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
-import { google } from 'googleapis'
+import { google } from "googleapis";
 
 const operationsFailed = [];
 
 async function getStudents(auth, id, amountOfStudents) {
-  const sheetTitle = "Dashboard"
-  const initRowStudents = 12
-  const lastRowStudents = amountOfStudents + initRowStudents
+  const sheetTitle = "Dashboard";
+  const initRowStudents = 12;
+  const lastRowStudents = parseInt(amountOfStudents) + initRowStudents;
   const request = {
     spreadsheetId: id,
     range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
     dateTimeRenderOption: "FORMATTED_STRING",
-    majorDimension: "DIMENSION_UNSPECIFIED",
     valueRenderOption: "UNFORMATTED_VALUE",
     auth,
-  }
-  const sheet = google.sheets('v4')
+  };
+  console.log(JSON.stringify(request, null, 2));
+  const sheet = google.sheets("v4");
 
   try {
-    const response = (await sheet.spreadsheets.values.get(request)).data
+    const response = (await sheet.spreadsheets.values.get(request)).data;
     const studentsInfo = response.values.map(student => (
       {
         name: student[0],
         email: student[1],
       }
-    ))
+    ));
 
-    return studentsInfo
+    return studentsInfo;
   } catch (error) {
-    console.log("deu ruim em pegar os alunos", error?.message)
+    console.log("deu ruim em pegar os alunos", error?.message);
   }
-}
-
-async function uploadSpreadsheetStudents(
-  auth,
-  folderId,
-  idSpreadsheetStudents
-) {
-  const fileNameInDrive = "template";
-  const idSpreadsheet = await copyFile(
-    auth,
-    idSpreadsheetStudents,
-    folderId,
-    fileNameInDrive
-  );
-
-  return idSpreadsheet;
 }
 
 async function uploadFilesStudents(
@@ -138,13 +121,7 @@ export async function execute(
   const folderId = await createFolder(auth, className);
   console.log("Creating class folder!");
 
-  const idTemplate = await uploadSpreadsheetStudents(
-    auth,
-    folderId,
-    idSpreadsheetStudents
-  );
-  console.log("Success on copy main spread!");
-  const students = await getStudents(auth, idTemplate, amountStudents);
+  const students = await getStudents(auth, idSpreadsheetStudents, amountStudents);
   console.log("Loading students with success!");
 
   await uploadFilesStudents(auth, students, folderId, idSpreadsheetTemplate);
