@@ -15,24 +15,36 @@ import {
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
+import { google } from 'googleapis'
 
 const operationsFailed = [];
 
 async function getStudents(auth, id, amountOfStudents) {
-  const amountStudentsRange = parseInt(amountOfStudents) + 11; //initial row students
+  const sheetTitle = "Dashboard"
+  const initRowStudents = 12
+  const lastRowStudents = amountOfStudents + initRowStudents
+  const request = {
+    spreadsheetId: id,
+    range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
+    dateTimeRenderOption: "FORMATTED_STRING",
+    majorDimension: "DIMENSION_UNSPECIFIED",
+    valueRenderOption: "UNFORMATTED_VALUE",
+    auth,
+  }
+  const sheet = google.sheets('v4')
+
   try {
-    const ranges = {
-      startColumnIndex: 0,
-      endColumnIndex: 2,
-      startRowIndex: 11,
-      endRowIndex: amountStudentsRange,
-    };
-    const sheetTitle = "Dashboard";
-    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges);
-    const students = getStudentInfo(sheet, amountStudentsRange);
-    return students;
-  } catch (err) {
-    console.log("Error in get Students: ", err?.message);
+    const response = (await sheet.spreadsheets.values.get(request)).data
+    const studentsInfo = response.values.map(student => (
+      {
+        name: student[0],
+        email: student[1],
+      }
+    ))
+
+    return studentsInfo
+  } catch (error) {
+    console.log("deu ruim em pegar os alunos", error?.message)
   }
 }
 
