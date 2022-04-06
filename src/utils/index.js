@@ -5,9 +5,9 @@ export function extractIdByUrl(url) {
   return newId;
 }
 
-export async function delay() {
+export async function delay(time) {
   return await new Promise((resolver, _reject) => {
-    setTimeout(resolver, 2000);
+    setTimeout(resolver, time);
   });
 }
 
