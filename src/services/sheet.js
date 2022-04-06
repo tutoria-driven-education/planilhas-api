@@ -1,5 +1,5 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { google } from 'googleapis'
+import { google } from "googleapis";
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -24,76 +24,114 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   }
 }
 
+export async function getStudents(auth, id, amountOfStudents) {
+  const sheetTitle = "Dashboard";
+  const initRowStudents = 12;
+  const lastRowStudents = parseInt(amountOfStudents) + initRowStudents;
+  const request = {
+    spreadsheetId: id,
+    range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
+    dateTimeRenderOption: "FORMATTED_STRING",
+    valueRenderOption: "UNFORMATTED_VALUE",
+    auth,
+  };
+  const sheet = google.sheets("v4");
+
+  try {
+    const response = (await sheet.spreadsheets.values.get(request)).data;
+    const studentsInfo = response.values.map(student => (
+      {
+        name: student[0],
+        email: student[1],
+      }
+    ));
+
+    return studentsInfo;
+  } catch (error) {
+    console.log("deu ruim em pegar os alunos", error?.message);
+  }
+}
 
 export async function writeSheetStudent(auth,
   id,
   studentName,
   studentEmail,
   operationsFailed = []) {
-  const sheet = google.sheets('v4')
+  const sheet = google.sheets("v4");
   async function changeName() {
-    const values = new Array(25).fill(Array(0))
-    values[15] = [studentName]
-    values[21] = [studentName]
+    const values = new Array(25).fill(Array(0));
+    values[15] = [studentName];
+    values[21] = [studentName];
     const request = {
       spreadsheetId: id,
-      range: 'Controle!A1:A25',
-      valueInputOption: 'raw',
+      range: "Controle!A1:A25",
+      valueInputOption: "raw",
       auth,
       resource: {
         values
       }
-    }
+    };
     try {
-      const response = (await sheet.spreadsheets.values.update(request)).data
+      const response = (await sheet.spreadsheets.values.update(request)).data;
 
-      return response
-
+      return response;
     } catch (error) {
-      console.log("Error in changed Name", error?.message)
+      throw new Error("Error in write name student");
     }
   }
   async function changeEmail() {
-    const values = new Array(25).fill(Array(0))
-    values[15] = [studentEmail]
-    values[21] = [studentEmail]
+    const values = new Array(25).fill(Array(0));
+    values[15] = [studentEmail];
+    values[21] = [studentEmail];
     const request = {
       spreadsheetId: id,
-      range: 'Controle!B1:B25',
-      valueInputOption: 'raw',
+      range: "Controle!B1:B25",
+      valueInputOption: "raw",
       auth,
       resource: {
         values
       }
-    }
+    };
     try {
-      const response = (await sheet.spreadsheets.values.update(request)).data
+      const response = (await sheet.spreadsheets.values.update(request)).data;
 
-      return response
-
+      return response;
     } catch (error) {
-      console.log("Error in change email", error?.message)
+      throw new Error("Error in write name student");
     }
   }
 
   try {
     await changeName();
     await changeEmail();
-    // await Promise.all([changeEmail, changeName])
   } catch (error) {
-
+    const operation = operationsFailed.find(
+      (op) => op.id === id && op.name == "write_sheet"
+    );
+    if (operation !== undefined) {
+      if (operation.limit >= 5) {
+        logger.error(
+          `Can not write sheet; error: ${error?.message} attempts:${operation.limit}`
+        );
+        throw new Error("Error in write sheet");
+      } else {
+        operation.limit += 1;
+      }
+    } else {
+      operationsFailed.push({
+        id,
+        limit: 0,
+        name: "write_sheet",
+      });
+    }
+    await delay(25000);
+    console.log("TRYING: Write in file again; student:", studentName);
+    await writeSheetStudent(auth,
+      id,
+      studentName,
+      studentEmail,
+      operationsFailed);
   }
-}
-export function getStudentInfo(sheet, amountOfStudents) {
-  const students = [];
-  const initialRowStudents = 11;
-  for (let i = initialRowStudents; i < amountOfStudents; i++) {
-    const name = sheet.getCell(i, 0).value;
-    const email = sheet.getCell(i, 1).value;
-    if (name === null) break;
-    students.push({ name, email });
-  }
-  return students;
 }
 
 export async function copyToNewSheet(file, templateSheet) {
