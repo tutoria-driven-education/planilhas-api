@@ -1,5 +1,5 @@
 import NodeMailer from "nodemailer";
-import mailTemplate from "../templates/mail.js";
+import mailTemplate from "../templates/mail";
 
 export default function sendStudentMail(studentName, studentEmail, sheetId) {
   const mail = NodeMailer.createTransport({

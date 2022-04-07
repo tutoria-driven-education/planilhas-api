@@ -1,6 +1,6 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { delay, extractStudentNameByFileName } from "../utils/index.js";
-import { logger } from "../utils/logger.js";
+import { delay, extractStudentNameByFileName } from "../utils/index";
+import { logger } from "../utils/logger";
 
 export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   const doc = new GoogleSpreadsheet(id);

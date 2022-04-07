@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as authController from "../controllers/auth.js";
-import * as robotController from "../controllers/robot.js";
+import * as authController from "../controllers/auth";
+import * as robotController from "../controllers/robot";
 
 const router = Router();
 

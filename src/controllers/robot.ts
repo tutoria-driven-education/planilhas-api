@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import * as mainService from "../services/main.js";
-import { extractIdByUrl } from "../utils/index.js";
+import * as mainService from "../services/main";
+import { extractIdByUrl } from "../utils/index";
 
 export async function generateSpreadsheets(req: Request, res: Response) {
   const {

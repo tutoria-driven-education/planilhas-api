@@ -1,12 +1,15 @@
 import * as fs from "fs/promises";
+import { Credentials } from "google-auth-library";
 import { google } from "googleapis";
 
 async function getOauth() {
   let credentials;
   try {
-    credentials = JSON.parse(await fs.readFile("credentials.json"));
+    credentials = JSON.parse(
+      await fs.readFile("credentials.json", { encoding: "utf-8" })
+    );
   } catch (err) {
-    console.log("Error in reading credentials", err?.message);
+    throw new Error("Error in reading credentials");
   }
 
   const { client_secret, client_id, redirect_uris } = credentials.installed;
@@ -33,17 +36,17 @@ export async function getLinkToken() {
   return authUrl;
 }
 
-export async function getTokenGoogle(code) {
+export async function getTokenGoogle(code: string) {
   const oAuth = await getOauth();
   try {
     const request = await oAuth.getToken(code);
     return request.tokens;
   } catch (err) {
-    console.log("Error in search token", err?.message);
+    throw new Error("Error in search token");
   }
 }
 
-export async function authorize(token) {
+export async function authorize(token: Credentials) {
   const oAuth = await getOauth();
 
   oAuth.setCredentials(token);

@@ -1,20 +1,20 @@
-import { promiseMap } from "../lib/promiseMap.js";
-import { authorize } from "./auth.js";
+import { promiseMap } from "../lib/promiseMap";
+import { authorize } from "./auth";
 import {
   createFolder,
   copyFile,
   updatePermissionStudentFile,
   getIdsInsideFolder,
-} from "./drive.js";
+} from "./drive";
 import {
   getStudentInfo,
   initSpreadsheet,
   writeSheetStudent,
   copyToNewSheet,
   alterSheetNameAndInfo,
-} from "./sheet.js";
-import sendStudentMail from "./mail.js";
-import { logger } from "../utils/logger.js";
+} from "./sheet";
+import sendStudentMail from "./mail";
+import { logger } from "../utils/logger";
 
 const operationsFailed = [];
 

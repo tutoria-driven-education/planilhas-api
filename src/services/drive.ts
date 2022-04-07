@@ -1,7 +1,7 @@
 import { createReadStream } from "fs";
 import { google } from "googleapis";
-import { delay } from "../utils/index.js";
-import { logger } from "../utils/logger.js";
+import { delay } from "../utils/index";
+import { logger } from "../utils/logger";
 
 export async function uploadFile(auth, fileNameInDrive, path, folderId) {
   const drive = google.drive({ version: "v3", auth });
