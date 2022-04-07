@@ -172,7 +172,7 @@ export async function getStudentsUnderNinetyPercent(
   const amountStudentsRange = parseInt(endpoint) + 11;
   const ranges = {
     startColumnIndex: 0,
-    endColumnIndex: 5,
+    endColumnIndex: 6,
     startRowIndex: 11,
     endRowIndex: amountStudentsRange,
   };

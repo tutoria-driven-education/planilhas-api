@@ -15,7 +15,7 @@ router.post("/api/execute", mainController.execute);
 router.post("/api/update", mainController.updateSheet);
 
 router.get(
-  "/api/studentsAttendance",
+  "/api/students-attendance",
   mainController.getStudentsUnderNinetyPercent
 );
 
