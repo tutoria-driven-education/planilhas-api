@@ -245,7 +245,6 @@ export async function alterSheetNameAndInfo(auth, file, pageName) {
     const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
     Promise.all([updateName], [updateTitle], [updateProtect]);
   } catch (err) {
-    console.log(err);
     throw new Error(
       `Error when altering at new sheet on document ${file.name}`
     );
