@@ -1,4 +1,12 @@
-export const promiseMap = (array, promiseFn, args) => {
+interface IPromiseMapParams {
+  array: Array<any>;
+  promiseFn: (item: any) => Promise<void>;
+  args?: {
+    concurrency?: number;
+  };
+}
+
+export function promiseMap({ array, promiseFn, args }: IPromiseMapParams) {
   if (!array) {
     return Promise.reject("arrayNotIterable");
   }
@@ -15,7 +23,7 @@ export const promiseMap = (array, promiseFn, args) => {
 
   let results = new Array(array.length);
 
-  let queue = [];
+  let queue: Array<Promise<void>> = [];
   let finished = 0;
 
   return new Promise((resolve, reject) => {
@@ -47,4 +55,4 @@ export const promiseMap = (array, promiseFn, args) => {
     }
     queuePromise();
   });
-};
+}
