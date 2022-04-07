@@ -120,24 +120,27 @@ export async function writeSheetStudent(
   }
 }
 
-export async function findSheet(auth, id, sheetName, isStudent = false) {
+export async function findSheet(auth, id, sheetName) {
   const sheet = google.sheets("v4");
 
   const request = {
     spreadsheetId: id,
     auth,
   };
-  if (isStudent) {
-    sheetName = `Cópia de ${sheetName}`;
+  try {
+    const sheetInsideSpread = (await sheet.spreadsheets.get(request)).data;
+    let sheetTemplateId = null;
+    sheetInsideSpread.sheets.forEach((sheet) => {
+      if (sheet.properties.title === sheetName) {
+        sheetTemplateId = sheet.properties.sheetId;
+      }
+    });
+    return sheetTemplateId;
+  } catch (err) {
+    console.log(err?.message);
+    await findSheet(auth, id, sheetName);
+    console.log(`Failed to find ${sheetName}, trying again!`);
   }
-  const sheetInsideSpread = (await sheet.spreadsheets.get(request)).data;
-  let sheetTemplateId = null;
-  sheetInsideSpread.sheets.forEach((sheet) => {
-    if (sheet.properties.title === sheetName) {
-      sheetTemplateId = sheet.properties.sheetId;
-    }
-  });
-  return sheetTemplateId;
 }
 
 export async function deleteSheet(auth, file, studentSheetId, pageName) {
@@ -161,7 +164,11 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     await sheet.spreadsheets.batchUpdate(request);
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
-    throw new Error(`Failed to delete ${pageName} at file ${file.name}`);
+    console.log(err?.message);
+    await deleteSheet(auth, file, studentSheetId, pageName);
+    console.log(
+      `Failed to delete ${pageName} at file ${file.name}, trying again!`
+    );
   }
 }
 
@@ -184,15 +191,26 @@ export async function copyToNewSheet(
   try {
     await sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
-    throw new Error(`Error when copying at new sheet on document ${file.name}`);
+    console.log(err?.message);
+    await copyToNewSheet(
+      auth,
+      file,
+      idSpreadsheetTemplate,
+      sheetIdInsideTemplate
+    );
+    console.log(`Error when copying at new sheet on document ${file.name}`);
   }
 }
 
-export async function alterSheetNameAndInfo(auth, file, pageName) {
+export async function alterSheetNameAndInfo(
+  auth,
+  file,
+  pageName,
+  operationsFailed = []
+) {
   const sheet = google.sheets("v4");
-  const isStudent = true;
   const actualPageName = `Cópia de ${pageName}`;
-  const studentSheetId = await findSheet(auth, file.id, pageName, isStudent);
+  const studentSheetId = await findSheet(auth, file.id, actualPageName);
   const studentName = extractStudentNameByFileName(file);
 
   const values = new Array(4).fill(Array(0));
@@ -249,10 +267,30 @@ export async function alterSheetNameAndInfo(auth, file, pageName) {
     const updateName = await sheet.spreadsheets.values.update(requestValues);
     const updateTitle = await sheet.spreadsheets.batchUpdate(requestTitle);
     const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
-    Promise.all([updateName], [updateTitle], [updateProtect]);
+    Promise.all([updateName, updateTitle, updateProtect]);
   } catch (err) {
-    throw new Error(
-      `Error when altering at new sheet on document ${file.name}`
+    console.log(err?.message);
+    const operation = operationsFailed.find(
+      (op) => op.id === studentSheetId && op.name == "alter_sheet"
     );
+    if (operation !== undefined) {
+      if (operation.limit >= 5) {
+        logger.error(
+          `Can not alter sheet; error: ${err?.message} attempts:${operation.limit}`
+        );
+        throw new Error("Error in alter sheet");
+      } else {
+        operation.limit += 1;
+      }
+    } else {
+      operationsFailed.push({
+        studentSheetId,
+        limit: 0,
+        name: "alter_sheet",
+      });
+    }
+    await delay(25000);
+    console.log("TRYING: alter in file again; student:", studentName);
+    await alterSheetNameAndInfo(auth, file, pageName, operationsFailed);
   }
 }

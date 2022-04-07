@@ -136,18 +136,18 @@ async function createNewPage(
   pageName
 ) {
   async function updateStudentsFiles(file) {
-    const isStudent = true;
     try {
       const studentSheetId = await findSheet(
         auth,
         file.id,
         pageName,
-        isStudent
       );
       if (studentSheetId) {
-        console.log(`Page ${pageName} already exists. Deleting it...`);
+        console.log(`Page ${pageName} already exists at ${file.name}. Deleting it...`);
         await deleteSheet(auth, file, studentSheetId, pageName);
       }
+
+      console.log(`Starting copy to file ${file.name}...`);
       await copyToNewSheet(
         auth,
         file,
@@ -165,5 +165,5 @@ async function createNewPage(
     }
   }
 
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
