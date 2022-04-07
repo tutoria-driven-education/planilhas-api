@@ -10,8 +10,8 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
   try {
     await doc.loadInfo();
     const sheet = doc.sheetsByTitle[sheetTitle];
-    
-    if(!sheet) return null
+
+    if (!sheet) return null;
 
     if (ranges) {
       await sheet.loadCells(ranges);
@@ -40,12 +40,10 @@ export async function getStudents(auth, id, amountOfStudents) {
 
   try {
     const response = (await sheet.spreadsheets.values.get(request)).data;
-    const studentsInfo = response.values.map(student => (
-      {
-        name: student[0],
-        email: student[1],
-      }
-    ));
+    const studentsInfo = response.values.map((student) => ({
+      name: student[0],
+      email: student[1],
+    }));
 
     return studentsInfo;
   } catch (error) {
@@ -53,11 +51,13 @@ export async function getStudents(auth, id, amountOfStudents) {
   }
 }
 
-export async function writeSheetStudent(auth,
+export async function writeSheetStudent(
+  auth,
   id,
   studentName,
   studentEmail,
-  operationsFailed = []) {
+  operationsFailed = []
+) {
   const sheet = google.sheets("v4");
   async function changeName() {
     const values = new Array(25).fill(Array(0));
@@ -69,8 +69,8 @@ export async function writeSheetStudent(auth,
       valueInputOption: "raw",
       auth,
       resource: {
-        values
-      }
+        values,
+      },
     };
     try {
       const response = (await sheet.spreadsheets.values.update(request)).data;
@@ -90,8 +90,8 @@ export async function writeSheetStudent(auth,
       valueInputOption: "raw",
       auth,
       resource: {
-        values
-      }
+        values,
+      },
     };
     try {
       const response = (await sheet.spreadsheets.values.update(request)).data;
@@ -106,7 +106,6 @@ export async function writeSheetStudent(auth,
     await changeName();
     await changeEmail();
   } catch (error) {
-    
     const operation = operationsFailed.find(
       (op) => op.id === id && op.name == "write_sheet"
     );
@@ -128,11 +127,13 @@ export async function writeSheetStudent(auth,
     }
     await delay(25000);
     console.log("TRYING: Write in file again; student:", studentName);
-    await writeSheetStudent(auth,
+    await writeSheetStudent(
+      auth,
       id,
       studentName,
       studentEmail,
-      operationsFailed);
+      operationsFailed
+    );
   }
 }
 
@@ -157,7 +158,7 @@ export async function alterSheetNameAndInfo(auth, file, title) {
     nameCell.value = studentName;
 
     await sheet.saveUpdatedCells();
-    
+
     await sheet.updateProperties({
       title,
     });
