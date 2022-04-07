@@ -1,29 +1,6 @@
-import { GoogleSpreadsheet } from "google-spreadsheet";
 import { google } from "googleapis";
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
-
-export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
-  const doc = new GoogleSpreadsheet(id);
-  doc.useOAuth2Client(auth);
-
-  try {
-    await doc.loadInfo();
-    const sheet = doc.sheetsByTitle[sheetTitle];
-    
-    if(!sheet) return null
-
-    if (ranges) {
-      await sheet.loadCells(ranges);
-    } else {
-      await sheet.loadCells();
-    }
-
-    return sheet;
-  } catch (err) {
-    throw new Error("Error in init spreadsheet");
-  }
-}
 
 export async function getStudents(auth, id, amountOfStudents) {
   const sheetTitle = "Dashboard";
@@ -40,12 +17,10 @@ export async function getStudents(auth, id, amountOfStudents) {
 
   try {
     const response = (await sheet.spreadsheets.values.get(request)).data;
-    const studentsInfo = response.values.map(student => (
-      {
-        name: student[0],
-        email: student[1],
-      }
-    ));
+    const studentsInfo = response.values.map((student) => ({
+      name: student[0],
+      email: student[1],
+    }));
 
     return studentsInfo;
   } catch (error) {
@@ -53,11 +28,13 @@ export async function getStudents(auth, id, amountOfStudents) {
   }
 }
 
-export async function writeSheetStudent(auth,
+export async function writeSheetStudent(
+  auth,
   id,
   studentName,
   studentEmail,
-  operationsFailed = []) {
+  operationsFailed = []
+) {
   const sheet = google.sheets("v4");
   async function changeName() {
     const values = new Array(25).fill(Array(0));
@@ -69,8 +46,8 @@ export async function writeSheetStudent(auth,
       valueInputOption: "raw",
       auth,
       resource: {
-        values
-      }
+        values,
+      },
     };
     try {
       const response = (await sheet.spreadsheets.values.update(request)).data;
@@ -90,8 +67,8 @@ export async function writeSheetStudent(auth,
       valueInputOption: "raw",
       auth,
       resource: {
-        values
-      }
+        values,
+      },
     };
     try {
       const response = (await sheet.spreadsheets.values.update(request)).data;
@@ -106,7 +83,6 @@ export async function writeSheetStudent(auth,
     await changeName();
     await changeEmail();
   } catch (error) {
-    
     const operation = operationsFailed.find(
       (op) => op.id === id && op.name == "write_sheet"
     );
@@ -128,41 +104,146 @@ export async function writeSheetStudent(auth,
     }
     await delay(25000);
     console.log("TRYING: Write in file again; student:", studentName);
-    await writeSheetStudent(auth,
+    await writeSheetStudent(
+      auth,
       id,
       studentName,
       studentEmail,
-      operationsFailed);
-  }
-}
-
-export async function copyToNewSheet(file, templateSheet) {
-  try {
-    await templateSheet.copyToSpreadsheet(file.id);
-  } catch (err) {
-    throw new Error(
-      `Error when inserting at new sheet on document ${file.name}`
+      operationsFailed
     );
   }
 }
 
-export async function alterSheetNameAndInfo(auth, file, title) {
+export async function findSheet(auth, id, sheetName, isStudent = false) {
+  const sheet = google.sheets("v4");
+
+  const request = {
+    spreadsheetId: id,
+    auth,
+  };
+  if (isStudent) {
+    sheetName = `Cópia de ${sheetName}`;
+  }
+  const sheetInsideSpread = (await sheet.spreadsheets.get(request)).data;
+  let sheetTemplateId = null;
+  sheetInsideSpread.sheets.forEach((sheet) => {
+    if (sheet.properties.title === sheetName) {
+      sheetTemplateId = sheet.properties.sheetId;
+    }
+  });
+  return sheetTemplateId;
+}
+
+export async function deleteSheet(auth, file, studentSheetId, pageName) {
+  const sheet = google.sheets("v4");
+
+  const request = {
+    spreadsheetId: file.id,
+    resource: {
+      requests: [
+        {
+          deleteSheet: {
+            sheetId: studentSheetId,
+          },
+        },
+      ],
+    },
+    auth,
+  };
+
   try {
-    const copyTitle = `Cópia de ${title}`;
-    const sheet = await initSpreadsheet(auth, file.id, copyTitle);
+    await sheet.spreadsheets.batchUpdate(request);
+    console.log(`Sucess on delete ${pageName} at file ${file.name}`);
+  } catch (err) {
+    throw new Error(`Failed to delete ${pageName} at file ${file.name}`);
+  }
+}
 
-    const studentName = extractStudentNameByFileName(file);
+export async function copyToNewSheet(
+  auth,
+  file,
+  idSpreadsheetTemplate,
+  sheetIdInsideTemplate
+) {
+  const sheet = google.sheets("v4");
 
-    const nameCell = sheet.getCell(0, 1);
-    nameCell.value = studentName;
+  const request = {
+    spreadsheetId: idSpreadsheetTemplate,
+    sheetId: sheetIdInsideTemplate,
+    resource: {
+      destinationSpreadsheetId: file.id,
+    },
+    auth,
+  };
+  try {
+    await sheet.spreadsheets.sheets.copyTo(request);
+  } catch (err) {
+    throw new Error(`Error when copying at new sheet on document ${file.name}`);
+  }
+}
 
-    await sheet.saveUpdatedCells();
+export async function alterSheetNameAndInfo(auth, file, pageName) {
+  const sheet = google.sheets("v4");
+  const isStudent = true;
+  const actualPageName = `Cópia de ${pageName}`;
+  const studentSheetId = await findSheet(auth, file.id, pageName, isStudent);
+  const studentName = extractStudentNameByFileName(file);
 
-    await sheet.updateProperties({
-      title,
-    });
+  const values = new Array(4).fill(Array(0));
+  values[0] = [studentName];
 
-    return console.log(`Page altered on file ${file.name}`);
+  const requestValues = {
+    spreadsheetId: file.id,
+    range: `${actualPageName}!B1:B6`,
+    valueInputOption: "raw",
+    auth,
+    resource: {
+      values,
+    },
+  };
+
+  const requestTitle = {
+    spreadsheetId: file.id,
+    resource: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: {
+              sheetId: studentSheetId,
+              title: pageName,
+              hidden: true,
+            },
+            fields: "title, hidden",
+          },
+        },
+      ],
+    },
+    auth,
+  };
+
+  const requestProtect = {
+    spreadsheetId: file.id,
+    resource: {
+      requests: [
+        {
+          addProtectedRange: {
+            protectedRange: {
+              range: {
+                sheetId: studentSheetId,
+              },
+            },
+          },
+        },
+      ],
+    },
+    auth,
+  };
+
+  try {
+    const updateName = await sheet.spreadsheets.values.update(requestValues);
+    const updateTitle = await sheet.spreadsheets.batchUpdate(requestTitle);
+    const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
+    Promise.all([updateName], [updateTitle], [updateProtect]);
   } catch (err) {
     throw new Error(
       `Error when altering at new sheet on document ${file.name}`

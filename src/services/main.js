@@ -7,8 +7,10 @@ import {
   getIdsInsideFolder,
 } from "./drive.js";
 import {
-  initSpreadsheet,
   writeSheetStudent,
+  getStudents,
+  findSheet,
+  deleteSheet,
   copyToNewSheet,
   alterSheetNameAndInfo,
   getStudentsInfoWithAttendancePercentage,
@@ -66,31 +68,6 @@ async function uploadFilesStudents(
   return promiseMap(students, createStudentComplete, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }
 
-async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
-  async function updateStudentsFiles(file) {
-    try {
-      const page = await initSpreadsheet(auth, file.id, pageName);
-
-      if (page) {
-        console.log(`Page ${pageName} already exists. Deleting it...`);
-        await page.delete();
-      }
-
-      await copyToNewSheet(file, templateSheet);
-      console.log(`Copy to file ${file.name} with sucess`);
-
-      await alterSheetNameAndInfo(auth, file, pageName);
-      console.log(`Alter to file ${file.name} with sucess`);
-    } catch (err) {
-      throw new Error(
-        `Error in process of file ${file.name} err: ${err?.message}`
-      );
-    }
-  }
-
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
-}
-
 export async function execute(
   idSpreadsheetStudents,
   idSpreadsheetTemplate,
@@ -116,20 +93,43 @@ export async function execute(
   console.log("Done!");
 }
 
-export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
+export async function executeUpdate(
+  folderId,
+  idSpreadsheetTemplate,
+  pageName,
+  token
+) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
 
   const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
 
   console.log("Success on loading page!");
+  const sheetIdInsideTemplate = await findSheet(
+    auth,
+    idSpreadsheetTemplate,
+    pageName
+  );
+
+  if (sheetIdInsideTemplate === null) {
+    console.log("Sheet dont exist in template");
+    return sheetIdInsideTemplate;
+  } else {
+    console.log("Success on getting sheetId!");
+  }
 
   const {
-    data: { files: arrayFiles },
+    data: { files: arrayFilesId },
   } = await getIdsInsideFolder(auth, folderId);
   console.log("Success on getting files id!");
 
-  await createNewPage(auth, arrayFiles, templateSheet, pageName);
+  await createNewPage(
+    auth,
+    arrayFilesId,
+    idSpreadsheetTemplate,
+    sheetIdInsideTemplate,
+    pageName
+  );
   console.log("Done!");
 }
 
@@ -159,4 +159,44 @@ export async function getStudentsUnderNinetyPercent(
   console.info("Loading students with success!");
 
   return studentsInfo;
+}
+
+async function createNewPage(
+  auth,
+  arrayFilesId,
+  idSpreadsheetTemplate,
+  sheetIdInsideTemplate,
+  pageName
+) {
+  async function updateStudentsFiles(file) {
+    const isStudent = true;
+    try {
+      const studentSheetId = await findSheet(
+        auth,
+        file.id,
+        pageName,
+        isStudent
+      );
+      if (studentSheetId) {
+        console.log(`Page ${pageName} already exists. Deleting it...`);
+        await deleteSheet(auth, file, studentSheetId, pageName);
+      }
+      await copyToNewSheet(
+        auth,
+        file,
+        idSpreadsheetTemplate,
+        sheetIdInsideTemplate
+      );
+      console.log(`Copy to file ${file.name} with sucess`);
+
+      await alterSheetNameAndInfo(auth, file, pageName);
+      console.log(`Alter to file ${file.name} with sucess`);
+    } catch (err) {
+      throw new Error(
+        `Error in process of file ${file.name} err: ${err?.message}`
+      );
+    }
+  }
+
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
 }

@@ -35,12 +35,16 @@ export async function updateSheet(req, res) {
   const folderId = extractIdByUrl(folderLinkSpreadsheet);
   const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  await mainService.executeUpdate(
+  const result = await mainService.executeUpdate(
     folderId,
     idSpreadsheetTemplate,
     spreadsheetPageName,
     token
   );
+
+  if (result === null) {
+    return res.sendStatus(400);
+  }
 
   return res.sendStatus(200);
 }
