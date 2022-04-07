@@ -6,11 +6,16 @@ import {
   updatePermissionStudentFile,
   getIdsInsideFolder,
 } from "./drive.js";
-import { writeSheetStudent, getStudents } from "./sheet.js";
+import {
+  writeSheetStudent,
+  getStudents,
+  findSheet,
+  deleteSheet,
+  copyToNewSheet,
+  alterSheetNameAndInfo,
+} from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
-import { google } from "googleapis";
-import { extractStudentNameByFileName } from "../utils/index.js";
 
 const operationsFailed = [];
 
@@ -161,142 +166,4 @@ async function createNewPage(
   }
 
   return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
-}
-
-async function alterSheetNameAndInfo(auth, file, pageName) {
-  const sheet = google.sheets("v4");
-  const isStudent = true;
-  const actualPageName = `Cópia de ${pageName}`;
-  const studentSheetId = await findSheet(auth, file.id, pageName, isStudent);
-  const studentName = extractStudentNameByFileName(file);
-
-  const values = new Array(4).fill(Array(0));
-  values[0] = [studentName];
-
-  const requestValues = {
-    spreadsheetId: file.id,
-    range: `${actualPageName}!B1:B6`,
-    valueInputOption: "raw",
-    auth,
-    resource: {
-      values,
-    },
-  };
-
-  const requestTitle = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          updateSheetProperties: {
-            properties: {
-              sheetId: studentSheetId,
-              title: pageName,
-              hidden: true,
-            },
-            fields: "title, hidden",
-          },
-        },
-      ],
-    },
-    auth,
-  };
-
-  const requestProtect = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          addProtectedRange: {
-            protectedRange: {
-              range: {
-                sheetId: studentSheetId
-              },
-            },
-          },
-        },
-      ],
-    },
-    auth,
-  };
-
-  try {
-    const updateName = await sheet.spreadsheets.values.update(requestValues);
-    const updateTitle = await sheet.spreadsheets.batchUpdate(requestTitle);
-    const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
-    Promise.all([updateName], [updateTitle], [updateProtect]);
-  } catch (err) {
-    console.log(err);
-    throw new Error(
-      `Error when altering at new sheet on document ${file.name}`
-    );
-  }
-}
-
-async function copyToNewSheet(
-  auth,
-  file,
-  idSpreadsheetTemplate,
-  sheetIdInsideTemplate
-) {
-  const sheet = google.sheets("v4");
-
-  const request = {
-    spreadsheetId: idSpreadsheetTemplate,
-    sheetId: sheetIdInsideTemplate,
-    resource: {
-      destinationSpreadsheetId: file.id,
-    },
-    auth,
-  };
-  try {
-    await sheet.spreadsheets.sheets.copyTo(request);
-  } catch (err) {
-    throw new Error(`Error when copying at new sheet on document ${file.name}`);
-  }
-}
-
-async function deleteSheet(auth, file, studentSheetId, pageName) {
-  const sheet = google.sheets("v4");
-
-  const request = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          deleteSheet: {
-            sheetId: studentSheetId,
-          },
-        },
-      ],
-    },
-    auth,
-  };
-
-  try {
-    await sheet.spreadsheets.batchUpdate(request);
-    console.log(`Sucess on delete ${pageName} at file ${file.name}`);
-  } catch (err) {
-    throw new Error(`Failed to delete ${pageName} at file ${file.name}`);
-  }
-}
-
-async function findSheet(auth, id, sheetName, isStudent = false) {
-  const sheet = google.sheets("v4");
-
-  const request = {
-    spreadsheetId: id,
-    auth,
-  };
-  if (isStudent) {
-    sheetName = `Cópia de ${sheetName}`;
-  }
-  const sheetInsideSpread = (await sheet.spreadsheets.get(request)).data;
-  let sheetTemplateId = null;
-  sheetInsideSpread.sheets.forEach((sheet) => {
-    if (sheet.properties.title === sheetName) {
-      sheetTemplateId = sheet.properties.sheetId;
-    }
-  });
-  return sheetTemplateId;
 }
