@@ -1,7 +1,8 @@
+import { Request, Response } from "express";
 import * as mainService from "../services/main.js";
 import { extractIdByUrl } from "../utils/index.js";
 
-export async function execute(req, res) {
+export async function generateSpreadsheets(req: Request, res: Response) {
   const {
     linkSpreadsheetStudents,
     linkSpreadsheetTemplate,
@@ -24,7 +25,7 @@ export async function execute(req, res) {
   return res.sendStatus(200);
 }
 
-export async function updateSheet(req, res) {
+export async function updateSheet(req: Request, res: Response) {
   const {
     folderLinkSpreadsheet,
     linkSpreadsheetTemplate,

@@ -1,17 +1,17 @@
-export function extractIdByUrl(url) {
+export function extractIdByUrl(url: string) {
   const id = url.split("/")[5];
-  const urlQueryIndex = id?.indexOf("?");
-  const newId = urlQueryIndex > -1 ? id.slice(0, urlQueryIndex) : id;
-  return newId;
+  return id;
 }
 
-export async function delay() {
+export async function delay(time: number): Promise<void> {
   return await new Promise((resolver, _reject) => {
-    setTimeout(resolver, 2000);
+    setTimeout(resolver, time);
   });
 }
 
-export function extractStudentNameByFileName(file) {
+export function extractStudentNameByFileName(file: {
+  name: string | string[];
+}) {
   const index = file.name.indexOf("-");
   const studentName = file.name.slice(0, index - 1);
   return studentName;
