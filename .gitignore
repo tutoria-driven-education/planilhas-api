@@ -9,3 +9,7 @@ credentials.js
 database.sqlite
 trash.txt
 register.json
+area51.js
+.gitignore
+token.js
+yarn.lock
