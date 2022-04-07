@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -284,4 +285,24 @@ export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
   } while (name !== "Presença Síncrona" && row < endpoint + 11);
 
   return students;
+}
+
+export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+  const doc = new GoogleSpreadsheet(id);
+  doc.useOAuth2Client(auth);
+
+  try {
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle[sheetTitle];
+
+    if (ranges) {
+      await sheet.loadCells(ranges);
+    } else {
+      await sheet.loadCells();
+    }
+
+    return sheet;
+  } catch (err) {
+    throw new Error("Error in init spreadsheet");
+  }
 }

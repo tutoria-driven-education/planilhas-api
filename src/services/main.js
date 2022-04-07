@@ -14,6 +14,7 @@ import {
   copyToNewSheet,
   alterSheetNameAndInfo,
   getStudentsInfoWithAttendancePercentage,
+  initSpreadsheet,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
