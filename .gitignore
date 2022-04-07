@@ -9,3 +9,6 @@ credentials.js
 database.sqlite
 trash.txt
 register.json
+token.js
+.gitignore
+area51.js

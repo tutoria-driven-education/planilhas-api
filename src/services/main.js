@@ -7,51 +7,17 @@ import {
   getIdsInsideFolder,
 } from "./drive.js";
 import {
-  getStudentInfo,
   initSpreadsheet,
   writeSheetStudent,
   copyToNewSheet,
   alterSheetNameAndInfo,
   getStudentsInfoWithAttendancePercentage,
+  getStudents,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
 
 const operationsFailed = [];
-
-async function getStudents(auth, id, amountOfStudents) {
-  const amountStudentsRange = parseInt(amountOfStudents) + 11; //initial row students
-  try {
-    const ranges = {
-      startColumnIndex: 0,
-      endColumnIndex: 2,
-      startRowIndex: 11,
-      endRowIndex: amountStudentsRange,
-    };
-    const sheetTitle = "Dashboard";
-    const sheet = await initSpreadsheet(auth, id, sheetTitle, ranges);
-    const students = getStudentInfo(sheet, amountStudentsRange);
-    return students;
-  } catch (err) {
-    console.log("Error in get Students: ", err?.message);
-  }
-}
-
-async function uploadSpreadsheetStudents(
-  auth,
-  folderId,
-  idSpreadsheetStudents
-) {
-  const fileNameInDrive = "template";
-  const idSpreadsheet = await copyFile(
-    auth,
-    idSpreadsheetStudents,
-    folderId,
-    fileNameInDrive
-  );
-
-  return idSpreadsheet;
-}
 
 async function uploadFilesStudents(
   auth,
@@ -94,7 +60,6 @@ async function uploadFilesStudents(
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
       );
-      // console.log("Erro no processo geral")
     }
   }
 
@@ -104,8 +69,16 @@ async function uploadFilesStudents(
 async function createNewPage(auth, arrayFilesId, templateSheet, pageName) {
   async function updateStudentsFiles(file) {
     try {
+      const page = await initSpreadsheet(auth, file.id, pageName);
+
+      if (page) {
+        console.log(`Page ${pageName} already exists. Deleting it...`);
+        await page.delete();
+      }
+
       await copyToNewSheet(file, templateSheet);
       console.log(`Copy to file ${file.name} with sucess`);
+
       await alterSheetNameAndInfo(auth, file, pageName);
       console.log(`Alter to file ${file.name} with sucess`);
     } catch (err) {
@@ -131,13 +104,11 @@ export async function execute(
   const folderId = await createFolder(auth, className);
   console.log("Creating class folder!");
 
-  const idTemplate = await uploadSpreadsheetStudents(
+  const students = await getStudents(
     auth,
-    folderId,
-    idSpreadsheetStudents
+    idSpreadsheetStudents,
+    amountStudents
   );
-  console.log("Success on copy main spread!");
-  const students = await getStudents(auth, idTemplate, amountStudents);
   console.log("Loading students with success!");
 
   await uploadFilesStudents(auth, students, folderId, idSpreadsheetTemplate);
@@ -150,6 +121,7 @@ export async function executeUpdate(folderId, idSpreadsheet, pageName, token) {
   console.log("Success on authenticate!");
 
   const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
+
   console.log("Success on loading page!");
 
   const {
