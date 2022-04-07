@@ -138,8 +138,9 @@ export async function findSheet(auth, id, sheetName) {
     return sheetTemplateId;
   } catch (err) {
     console.log(err?.message);
-    await findSheet(auth, id, sheetName);
     console.log(`Failed to find ${sheetName}, trying again!`);
+    await delay(5000);
+    return await findSheet(auth, id, sheetName);
   }
 }
 
@@ -165,6 +166,7 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
     console.log(err?.message);
+    await delay(5000);
     await deleteSheet(auth, file, studentSheetId, pageName);
     console.log(
       `Failed to delete ${pageName} at file ${file.name}, trying again!`
@@ -192,6 +194,7 @@ export async function copyToNewSheet(
     await sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
     console.log(err?.message);
+    await delay(5000);
     await copyToNewSheet(
       auth,
       file,
@@ -264,12 +267,12 @@ export async function alterSheetNameAndInfo(
   };
 
   try {
-    const updateName = await sheet.spreadsheets.values.update(requestValues);
-    const updateTitle = await sheet.spreadsheets.batchUpdate(requestTitle);
-    const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
-    Promise.all([updateName, updateTitle, updateProtect]);
+    await sheet.spreadsheets.values.update(requestValues);
+    const updateTitle = sheet.spreadsheets.batchUpdate(requestTitle);
+    const updateProtect = sheet.spreadsheets.batchUpdate(requestProtect);
+    await Promise.all([updateTitle, updateProtect]);
   } catch (err) {
-    console.log(err?.message);
+    console.log(`Leleo alter => ${err?.message}`);
     const operation = operationsFailed.find(
       (op) => op.id === studentSheetId && op.name == "alter_sheet"
     );
@@ -284,13 +287,13 @@ export async function alterSheetNameAndInfo(
       }
     } else {
       operationsFailed.push({
-        studentSheetId,
+        id: studentSheetId,
         limit: 0,
         name: "alter_sheet",
       });
     }
     await delay(25000);
-    console.log("TRYING: alter in file again; student:", studentName);
+    console.log(`TRYING: alter in file again; student: ${studentName} `);
     await alterSheetNameAndInfo(auth, file, pageName, operationsFailed);
   }
 }

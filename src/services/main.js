@@ -154,10 +154,10 @@ async function createNewPage(
         idSpreadsheetTemplate,
         sheetIdInsideTemplate
       );
-      console.log(`Copy to file ${file.name} with sucess`);
+      console.log(`Copy to file ${file.name} with success`);
 
       await alterSheetNameAndInfo(auth, file, pageName);
-      console.log(`Alter to file ${file.name} with sucess`);
+      console.log(`Alter to file ${file.name} with success`);
     } catch (err) {
       throw new Error(
         `Error in process of file ${file.name} err: ${err?.message}`
@@ -165,5 +165,5 @@ async function createNewPage(
     }
   }
 
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 3 });
 }
