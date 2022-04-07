@@ -16,11 +16,17 @@ export async function getStudents(auth, id, amountOfStudents) {
   const sheet = google.sheets("v4");
 
   try {
-    const response = (await sheet.spreadsheets.values.get(request)).data;
-    const studentsInfo = response.values.map((student) => ({
-      name: student[0],
-      email: student[1],
-    }));
+    const studentsInfo = [];
+    const response = (await sheet.spreadsheets.values.get(request)).data.values;
+    for (const student of response) {
+      if (student[0] == undefined) {
+        break;
+      }
+      studentsInfo.push({
+        name: student[0],
+        email: student[1],
+      });
+    }
 
     return studentsInfo;
   } catch (error) {
