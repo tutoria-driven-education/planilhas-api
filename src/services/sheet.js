@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -352,5 +353,60 @@ async function updateProtection(auth, file, studentSheetId) {
     console.log(`TRYING: to update protect range at file: ${file.name}`);
     await delay(5000);
     await updateProtection(auth, file, studentSheetId);
+  }
+}
+
+export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
+  const INITIAL_ROW = 11;
+  const NAME_COLUMN = 0;
+  const EMAIL_COLUMN = 1;
+  const PERCENTAGE_COLUMN = 4;
+  const DAYS_OFF_COLUMN = 5;
+
+  const students = [];
+
+  let row = INITIAL_ROW;
+  let name, email, percentage, daysOff;
+
+  do {
+    try {
+      name = sheet.getCell(row, NAME_COLUMN).value;
+      email = sheet.getCell(row, EMAIL_COLUMN).value;
+      percentage = sheet.getCell(row, PERCENTAGE_COLUMN).value;
+      daysOff = sheet.getCell(row, DAYS_OFF_COLUMN).value;
+
+      if (name && email && percentage && percentage < 0.9 && daysOff <= 20)
+        students.push({
+          name,
+          email,
+          percentage: Number((percentage * 100).toFixed(1)),
+        });
+
+      row++;
+    } catch {
+      throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
+    }
+  } while (name !== "Presença Síncrona" && row < endpoint);
+
+  return students;
+}
+
+export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+  const doc = new GoogleSpreadsheet(id);
+  doc.useOAuth2Client(auth);
+
+  try {
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle[sheetTitle];
+
+    if (ranges) {
+      await sheet.loadCells(ranges);
+    } else {
+      await sheet.loadCells();
+    }
+
+    return sheet;
+  } catch (err) {
+    throw new Error("Error in init spreadsheet");
   }
 }

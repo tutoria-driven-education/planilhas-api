@@ -13,6 +13,8 @@ import {
   deleteSheet,
   copyToNewSheet,
   alterSheetNameAndInfo,
+  getStudentsInfoWithAttendancePercentage,
+  initSpreadsheet,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
@@ -101,6 +103,9 @@ export async function executeUpdate(
   const auth = await authorize(token);
   console.log("Success on authenticate!");
 
+  const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
+
+  console.log("Success on loading page!");
   const sheetIdInsideTemplate = await findSheet(
     auth,
     idSpreadsheetTemplate,
@@ -127,6 +132,34 @@ export async function executeUpdate(
     pageName
   );
   console.log("Done!");
+}
+
+export async function getStudentsUnderNinetyPercent(
+  idSpreadsheet,
+  token,
+  endpoint
+) {
+  const auth = await authorize(token);
+  console.info("Success on authenticate!");
+
+  const amountStudentsRange = parseInt(endpoint) + 11;
+  const ranges = {
+    startColumnIndex: 0,
+    endColumnIndex: 6,
+    startRowIndex: 11,
+    endRowIndex: amountStudentsRange,
+  };
+
+  const sheetTitle = "Dashboard";
+  const sheet = await initSpreadsheet(auth, idSpreadsheet, sheetTitle, ranges);
+
+  const studentsInfo = await getStudentsInfoWithAttendancePercentage(
+    sheet,
+    endpoint
+  );
+  console.info("Loading students with success!");
+
+  return studentsInfo;
 }
 
 async function createNewPage(
