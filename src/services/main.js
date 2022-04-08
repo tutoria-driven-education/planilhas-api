@@ -97,6 +97,7 @@ export async function executeUpdate(
   folderId,
   idSpreadsheetTemplate,
   pageName,
+  isProtected,
   token
 ) {
   const auth = await authorize(token);
@@ -122,12 +123,12 @@ export async function executeUpdate(
     data: { files: arrayFilesId },
   } = await getIdsInsideFolder(auth, folderId);
   console.log("Success on getting files id!");
-
   await createNewPage(
     auth,
     arrayFilesId,
     idSpreadsheetTemplate,
     sheetIdInsideTemplate,
+    isProtected,
     pageName
   );
   console.log("Done!");
@@ -166,31 +167,30 @@ async function createNewPage(
   arrayFilesId,
   idSpreadsheetTemplate,
   sheetIdInsideTemplate,
+  isProtected,
   pageName
 ) {
   async function updateStudentsFiles(file) {
-    const isStudent = true;
     try {
-      const studentSheetId = await findSheet(
-        auth,
-        file.id,
-        pageName,
-        isStudent
-      );
+      const studentSheetId = await findSheet(auth, file.id, pageName);
       if (studentSheetId) {
-        console.log(`Page ${pageName} already exists. Deleting it...`);
+        console.log(
+          `Page ${pageName} already exists at ${file.name}. Deleting it...`
+        );
         await deleteSheet(auth, file, studentSheetId, pageName);
       }
+
+      console.log(`Starting copy to file ${file.name}...`);
       await copyToNewSheet(
         auth,
         file,
         idSpreadsheetTemplate,
         sheetIdInsideTemplate
       );
-      console.log(`Copy to file ${file.name} with sucess`);
+      console.log(`Copy to file ${file.name} with success`);
 
-      await alterSheetNameAndInfo(auth, file, pageName);
-      console.log(`Alter to file ${file.name} with sucess`);
+      await alterSheetNameAndInfo(auth, file, pageName, isProtected);
+      console.log(`Alter to file ${file.name} with success`);
     } catch (err) {
       throw new Error(
         `Error in process of file ${file.name} err: ${err?.message}`
@@ -198,5 +198,5 @@ async function createNewPage(
     }
   }
 
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 });
 }
