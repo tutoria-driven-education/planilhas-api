@@ -95,6 +95,7 @@ export async function executeUpdate(
   folderId,
   idSpreadsheetTemplate,
   pageName,
+  isProtected,
   token
 ) {
   const auth = await authorize(token);
@@ -122,6 +123,7 @@ export async function executeUpdate(
     arrayFilesId,
     idSpreadsheetTemplate,
     sheetIdInsideTemplate,
+    isProtected,
     pageName
   );
   console.log("Done!");
@@ -132,6 +134,7 @@ async function createNewPage(
   arrayFilesId,
   idSpreadsheetTemplate,
   sheetIdInsideTemplate,
+  isProtected,
   pageName
 ) {
   async function updateStudentsFiles(file) {
@@ -153,7 +156,7 @@ async function createNewPage(
       );
       console.log(`Copy to file ${file.name} with success`);
 
-      await alterSheetNameAndInfo(auth, file, pageName);
+      await alterSheetNameAndInfo(auth, file, pageName, isProtected);
       console.log(`Alter to file ${file.name} with success`);
     } catch (err) {
       throw new Error(
@@ -162,5 +165,5 @@ async function createNewPage(
     }
   }
 
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 3 });
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 });
 }

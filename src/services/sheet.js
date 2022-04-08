@@ -137,7 +137,6 @@ export async function findSheet(auth, id, sheetName) {
     });
     return sheetTemplateId;
   } catch (err) {
-    console.log(err?.message);
     console.log(`Failed to find ${sheetName}, trying again!`);
     await delay(5000);
     return await findSheet(auth, id, sheetName);
@@ -165,12 +164,11 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     await sheet.spreadsheets.batchUpdate(request);
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
-    console.log(err?.message);
-    await delay(5000);
-    await deleteSheet(auth, file, studentSheetId, pageName);
     console.log(
       `Failed to delete ${pageName} at file ${file.name}, trying again!`
     );
+    await delay(5000);
+    await deleteSheet(auth, file, studentSheetId, pageName);
   }
 }
 
@@ -193,7 +191,7 @@ export async function copyToNewSheet(
   try {
     await sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
-    console.log(err?.message);
+    console.log(`Error when copying at new sheet on document ${file.name}`);
     await delay(5000);
     await copyToNewSheet(
       auth,
@@ -201,7 +199,6 @@ export async function copyToNewSheet(
       idSpreadsheetTemplate,
       sheetIdInsideTemplate
     );
-    console.log(`Error when copying at new sheet on document ${file.name}`);
   }
 }
 
@@ -209,6 +206,7 @@ export async function alterSheetNameAndInfo(
   auth,
   file,
   pageName,
+  isProtected,
   operationsFailed = []
 ) {
   const actualPageName = `Cópia de ${pageName}`;
@@ -217,10 +215,11 @@ export async function alterSheetNameAndInfo(
 
   try {
     await updateValues(auth, file, actualPageName, studentName);
-    await updateTitle(auth, file, studentSheetId, pageName);
-    await updateProtection(auth, file, studentSheetId);
+    await updateTitle(auth, file, studentSheetId, pageName, isProtected);
+    if (isProtected) {
+      await updateProtection(auth, file, studentSheetId);
+    }
   } catch (err) {
-    console.log(`${err?.message}`);
     const operation = operationsFailed.find(
       (op) => op.id === studentSheetId && op.name == "alter_sheet"
     );
@@ -242,7 +241,13 @@ export async function alterSheetNameAndInfo(
     }
     await delay(25000);
     console.log(`TRYING: alter in file again; student: ${studentName} `);
-    await alterSheetNameAndInfo(auth, file, pageName, operationsFailed);
+    await alterSheetNameAndInfo(
+      auth,
+      file,
+      pageName,
+      isProtected,
+      operationsFailed
+    );
   }
 }
 
@@ -265,42 +270,64 @@ async function updateValues(auth, file, actualPageName, studentName) {
   try {
     await sheet.spreadsheets.values.update(requestValues);
   } catch (err) {
-    await delay(5000);
     console.log(
       `Error when trying to update names on file ${file.name}, trying again...`
     );
+    await delay(5000);
     await updateValues(auth, file, actualPageName, studentName);
   }
 }
 
-async function updateTitle(auth, file, studentSheetId, pageName) {
+async function updateTitle(auth, file, studentSheetId, pageName, isProtected) {
   const sheet = google.sheets("v4");
 
-  const requestTitle = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          updateSheetProperties: {
-            properties: {
-              sheetId: studentSheetId,
-              title: pageName,
-              hidden: true,
+  let requestTitle;
+  if (isProtected) {
+    requestTitle = {
+      spreadsheetId: file.id,
+      resource: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: studentSheetId,
+                title: pageName,
+                hidden: true,
+              },
+              fields: "title, hidden",
             },
-            fields: "title, hidden",
           },
-        },
-      ],
-    },
-    auth,
-  };
+        ],
+      },
+      auth,
+    };
+  } else {
+    requestTitle = {
+      spreadsheetId: file.id,
+      resource: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: studentSheetId,
+                title: pageName,
+              },
+              fields: "title",
+            },
+          },
+        ],
+      },
+      auth,
+    };
+  }
+
   try {
     await sheet.spreadsheets.batchUpdate(requestTitle);
   } catch (err) {
-    await delay(5000);
     console.log(
       `Erro when trying to alter title and hidden at file: ${file.name}, trying again...`
     );
+    await delay(5000);
     await updateTitle(auth, file, studentSheetId, pageName);
   }
 }
@@ -328,11 +355,10 @@ async function updateProtection(auth, file, studentSheetId) {
   try {
     await sheet.spreadsheets.batchUpdate(requestProtect);
   } catch (err) {
-    console.log(err?.message);
-    await delay(5000);
     console.log(
       `Error when trying to update protect range at file: ${file.name}`
     );
+    await delay(5000);
     await updateProtection(auth, file, studentSheetId);
   }
 }
