@@ -57,7 +57,7 @@ async function uploadFilesStudents(
         operationsFailed
       );
       console.log(`Student ${studentName} file rewritten!`);
-      // await sendStudentMail(student.name, student.email, studentId);
+      sendStudentMail(student.name, student.email, studentId);
     } catch (error) {
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
@@ -103,9 +103,6 @@ export async function executeUpdate(
   const auth = await authorize(token);
   console.log("Success on authenticate!");
 
-  const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
-
-  console.log("Success on loading page!");
   const sheetIdInsideTemplate = await findSheet(
     auth,
     idSpreadsheetTemplate,

@@ -12,7 +12,7 @@ export default function sendStudentMail(studentName, studentEmail, sheetId) {
   const template = mailTemplate(studentName, sheetId);
   var mailOptions = {
     from: process.env.EMAIL_USERNAME,
-    to: studentEmail,
+    to: "yann.melo@driven.com.br",
     subject: `Olá ${studentName}! Sua planilha individual de presença está pronta`,
     html: template,
   };
