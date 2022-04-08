@@ -109,7 +109,7 @@ export async function writeSheetStudent(
       });
     }
     await delay(25000);
-    console.log("TRYING: Write in file again; student:", studentName);
+    console.log(`TRYING: Write in file again; student: ${studentName}!`);
     await writeSheetStudent(
       auth,
       id,
@@ -137,7 +137,7 @@ export async function findSheet(auth, id, sheetName) {
     });
     return sheetTemplateId;
   } catch (err) {
-    console.log(`Failed to find ${sheetName}, trying again!`);
+    console.log(`TRYING: to find sheet named ${sheetName}!`);
     await delay(5000);
     return await findSheet(auth, id, sheetName);
   }
@@ -164,9 +164,7 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     await sheet.spreadsheets.batchUpdate(request);
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
-    console.log(
-      `Failed to delete ${pageName} at file ${file.name}, trying again!`
-    );
+    console.log(`TRYING: to delete ${pageName} at file ${file.name}!`);
     await delay(5000);
     await deleteSheet(auth, file, studentSheetId, pageName);
   }
@@ -191,7 +189,7 @@ export async function copyToNewSheet(
   try {
     await sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
-    console.log(`Error when copying at new sheet on document ${file.name}`);
+    console.log(`TRYING: to copy new sheet on document ${file.name}!`);
     await delay(5000);
     await copyToNewSheet(
       auth,
@@ -239,8 +237,8 @@ export async function alterSheetNameAndInfo(
         name: "alter_sheet",
       });
     }
+    console.log(`TRYING: alter in file student: ${studentName}!`);
     await delay(25000);
-    console.log(`TRYING: alter in file again; student: ${studentName} `);
     await alterSheetNameAndInfo(
       auth,
       file,
@@ -270,9 +268,7 @@ async function updateValues(auth, file, actualPageName, studentName) {
   try {
     await sheet.spreadsheets.values.update(requestValues);
   } catch (err) {
-    console.log(
-      `Error when trying to update names on file ${file.name}, trying again...`
-    );
+    console.log(`TRYING: to update names on file ${file.name}!`);
     await delay(5000);
     await updateValues(auth, file, actualPageName, studentName);
   }
@@ -324,9 +320,7 @@ async function updateTitle(auth, file, studentSheetId, pageName, isProtected) {
   try {
     await sheet.spreadsheets.batchUpdate(requestTitle);
   } catch (err) {
-    console.log(
-      `Erro when trying to alter title and hidden at file: ${file.name}, trying again...`
-    );
+    console.log(`TRYING: alter title and hidden at file: ${file.name}!`);
     await delay(5000);
     await updateTitle(auth, file, studentSheetId, pageName);
   }
@@ -355,9 +349,7 @@ async function updateProtection(auth, file, studentSheetId) {
   try {
     await sheet.spreadsheets.batchUpdate(requestProtect);
   } catch (err) {
-    console.log(
-      `Error when trying to update protect range at file: ${file.name}`
-    );
+    console.log(`TRYING: to update protect range at file: ${file.name}`);
     await delay(5000);
     await updateProtection(auth, file, studentSheetId);
   }
