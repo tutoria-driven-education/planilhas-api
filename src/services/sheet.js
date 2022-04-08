@@ -282,7 +282,7 @@ export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
     } catch {
       throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
     }
-  } while (name !== "Presença Síncrona" && row < endpoint + 11);
+  } while (name !== "Presença Síncrona" && row < endpoint);
 
   return students;
 }
