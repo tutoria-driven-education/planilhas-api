@@ -18,8 +18,17 @@ import {
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
+import NodeMailer from "nodemailer";
 
 const operationsFailed = [];
+
+const mail = NodeMailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 async function uploadFilesStudents(
   auth,
@@ -57,7 +66,7 @@ async function uploadFilesStudents(
         operationsFailed
       );
       console.log(`Student ${studentName} file rewritten!`);
-      sendStudentMail(student.name, student.email, studentId);
+      sendStudentMail(mail, student.name, student.email, studentId);
     } catch (error) {
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
