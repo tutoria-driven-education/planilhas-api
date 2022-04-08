@@ -1,9 +1,10 @@
-export default function mailTemplate(
-  studentName: string,
-  spreadId: string,
+import { IGetTemplateEmailForStudent } from "./../services/mail/index.d";
+export default function getTemplateEmailForStudent({
+  studentName,
+  spreadId,
   email = "eduardo.grossmann@driven.com.br",
-  usernameSlack = "@Dudu"
-) {
+  usernameSlack = "@Dudu",
+}: IGetTemplateEmailForStudent) {
   return `
   <html
     xmlns="http://www.w3.org/1999/xhtml"

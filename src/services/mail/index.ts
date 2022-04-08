@@ -1,7 +1,12 @@
 import NodeMailer from "nodemailer";
-import mailTemplate from "../templates/mail";
+import { ISendMailForStudent } from "./index.d";
+import mailTemplate from "../../templates/mail";
 
-export default function sendStudentMail(studentName, studentEmail, sheetId) {
+export default function sendMailForStudent({
+  studentName,
+  studentEmail,
+  sheetId,
+}: ISendMailForStudent) {
   const mail = NodeMailer.createTransport({
     service: "gmail",
     auth: {
