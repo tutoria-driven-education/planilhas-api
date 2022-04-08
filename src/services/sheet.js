@@ -211,68 +211,16 @@ export async function alterSheetNameAndInfo(
   pageName,
   operationsFailed = []
 ) {
-  const sheet = google.sheets("v4");
   const actualPageName = `Cópia de ${pageName}`;
   const studentSheetId = await findSheet(auth, file.id, actualPageName);
   const studentName = extractStudentNameByFileName(file);
 
-  const values = new Array(4).fill(Array(0));
-  values[0] = [studentName];
-
-  const requestValues = {
-    spreadsheetId: file.id,
-    range: `${actualPageName}!B1:B6`,
-    valueInputOption: "raw",
-    auth,
-    resource: {
-      values,
-    },
-  };
-
-  const requestTitle = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          updateSheetProperties: {
-            properties: {
-              sheetId: studentSheetId,
-              title: pageName,
-              hidden: true,
-            },
-            fields: "title, hidden",
-          },
-        },
-      ],
-    },
-    auth,
-  };
-
-  const requestProtect = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          addProtectedRange: {
-            protectedRange: {
-              range: {
-                sheetId: studentSheetId,
-              },
-            },
-          },
-        },
-      ],
-    },
-    auth,
-  };
-
   try {
-    await sheet.spreadsheets.values.update(requestValues);
-    const updateTitle = sheet.spreadsheets.batchUpdate(requestTitle);
-    const updateProtect = sheet.spreadsheets.batchUpdate(requestProtect);
-    await Promise.all([updateTitle, updateProtect]);
+    await updateValues(auth, file, actualPageName, studentName);
+    await updateTitle(auth, file, studentSheetId, pageName);
+    await updateProtection(auth, file, studentSheetId);
   } catch (err) {
-    console.log(`Leleo alter => ${err?.message}`);
+    console.log(`${err?.message}`);
     const operation = operationsFailed.find(
       (op) => op.id === studentSheetId && op.name == "alter_sheet"
     );
@@ -295,5 +243,96 @@ export async function alterSheetNameAndInfo(
     await delay(25000);
     console.log(`TRYING: alter in file again; student: ${studentName} `);
     await alterSheetNameAndInfo(auth, file, pageName, operationsFailed);
+  }
+}
+
+async function updateValues(auth, file, actualPageName, studentName) {
+  const sheet = google.sheets("v4");
+
+  const values = new Array(4).fill(Array(0));
+  values[0] = [studentName];
+
+  const requestValues = {
+    spreadsheetId: file.id,
+    range: `${actualPageName}!B1:B6`,
+    valueInputOption: "raw",
+    auth,
+    resource: {
+      values,
+    },
+  };
+
+  try {
+    await sheet.spreadsheets.values.update(requestValues);
+  } catch (err) {
+    await delay(5000);
+    console.log(
+      `Error when trying to update names on file ${file.name}, trying again...`
+    );
+    await updateValues(auth, file, actualPageName, studentName);
+  }
+}
+
+async function updateTitle(auth, file, studentSheetId, pageName) {
+  const sheet = google.sheets("v4");
+
+  const requestTitle = {
+    spreadsheetId: file.id,
+    resource: {
+      requests: [
+        {
+          updateSheetProperties: {
+            properties: {
+              sheetId: studentSheetId,
+              title: pageName,
+              hidden: true,
+            },
+            fields: "title, hidden",
+          },
+        },
+      ],
+    },
+    auth,
+  };
+  try {
+    await sheet.spreadsheets.batchUpdate(requestTitle);
+  } catch (err) {
+    await delay(5000);
+    console.log(
+      `Erro when trying to alter title and hidden at file: ${file.name}, trying again...`
+    );
+    await updateTitle(auth, file, studentSheetId, pageName);
+  }
+}
+
+async function updateProtection(auth, file, studentSheetId) {
+  const sheet = google.sheets("v4");
+
+  const requestProtect = {
+    spreadsheetId: file.id,
+    resource: {
+      requests: [
+        {
+          addProtectedRange: {
+            protectedRange: {
+              range: {
+                sheetId: studentSheetId,
+              },
+            },
+          },
+        },
+      ],
+    },
+    auth,
+  };
+  try {
+    await sheet.spreadsheets.batchUpdate(requestProtect);
+  } catch (err) {
+    console.log(err?.message);
+    await delay(5000);
+    console.log(
+      `Error when trying to update protect range at file: ${file.name}`
+    );
+    await updateProtection(auth, file, studentSheetId);
   }
 }

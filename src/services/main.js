@@ -117,7 +117,6 @@ export async function executeUpdate(
     data: { files: arrayFilesId },
   } = await getIdsInsideFolder(auth, folderId);
   console.log("Success on getting files id!");
-
   await createNewPage(
     auth,
     arrayFilesId,
@@ -137,13 +136,11 @@ async function createNewPage(
 ) {
   async function updateStudentsFiles(file) {
     try {
-      const studentSheetId = await findSheet(
-        auth,
-        file.id,
-        pageName,
-      );
+      const studentSheetId = await findSheet(auth, file.id, pageName);
       if (studentSheetId) {
-        console.log(`Page ${pageName} already exists at ${file.name}. Deleting it...`);
+        console.log(
+          `Page ${pageName} already exists at ${file.name}. Deleting it...`
+        );
         await deleteSheet(auth, file, studentSheetId, pageName);
       }
 
