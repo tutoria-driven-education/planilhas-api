@@ -15,21 +15,31 @@ O projeto ainda está em desenvolvimento e as próximas atualizações serão vo
 
 Antes de começar, verifique se você atendeu aos seguintes requisitos:
 
-* Você instalou a versão mais recente do nodejs e npm
-
+* Tenha a versão mais recente, e estavel, do nodejs e npm
 ## 🚀 Instalando Driven planilhas backend
 
 Para instalar o Driven planilhas, siga estas etapas:
 
 Linux e macOS:
+Passo 1: Clone o repositório
 ```
 git clone git@github.com:tutoria-driven-education/planilhas-api.git
-cd planilhas-api
+```
+Passo 2: Entre no diretório do projeto
+```
+cd planilhas-front
+```
+Passo 3: Instale as dependências do projeto
+```
 npm i
-
+```
+Passo 4: Crie o arquivo ".env" na raiz do projeto seguindo as variáveis que estão em ".env.example"
+```
+cp .env.example .env
 ```
 
-## ☕ Usando Driven planilhas beackend
+
+## ☕ Usando Driven planilhas backend
 
 Para usar Driven planilhas backend, siga estas etapas:
 
