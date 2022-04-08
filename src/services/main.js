@@ -13,6 +13,8 @@ import {
   deleteSheet,
   copyToNewSheet,
   alterSheetNameAndInfo,
+  getStudentsInfoWithAttendancePercentage,
+  initSpreadsheet,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
@@ -95,11 +97,15 @@ export async function executeUpdate(
   folderId,
   idSpreadsheetTemplate,
   pageName,
+  isProtected,
   token
 ) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
 
+  const templateSheet = await initSpreadsheet(auth, idSpreadsheet, pageName);
+
+  console.log("Success on loading page!");
   const sheetIdInsideTemplate = await findSheet(
     auth,
     idSpreadsheetTemplate,
@@ -117,15 +123,43 @@ export async function executeUpdate(
     data: { files: arrayFilesId },
   } = await getIdsInsideFolder(auth, folderId);
   console.log("Success on getting files id!");
-
   await createNewPage(
     auth,
     arrayFilesId,
     idSpreadsheetTemplate,
     sheetIdInsideTemplate,
+    isProtected,
     pageName
   );
   console.log("Done!");
+}
+
+export async function getStudentsUnderNinetyPercent(
+  idSpreadsheet,
+  token,
+  endpoint
+) {
+  const auth = await authorize(token);
+  console.info("Success on authenticate!");
+
+  const amountStudentsRange = parseInt(endpoint) + 11;
+  const ranges = {
+    startColumnIndex: 0,
+    endColumnIndex: 6,
+    startRowIndex: 11,
+    endRowIndex: amountStudentsRange,
+  };
+
+  const sheetTitle = "Dashboard";
+  const sheet = await initSpreadsheet(auth, idSpreadsheet, sheetTitle, ranges);
+
+  const studentsInfo = await getStudentsInfoWithAttendancePercentage(
+    sheet,
+    endpoint
+  );
+  console.info("Loading students with success!");
+
+  return studentsInfo;
 }
 
 async function createNewPage(
@@ -133,17 +167,16 @@ async function createNewPage(
   arrayFilesId,
   idSpreadsheetTemplate,
   sheetIdInsideTemplate,
+  isProtected,
   pageName
 ) {
   async function updateStudentsFiles(file) {
     try {
-      const studentSheetId = await findSheet(
-        auth,
-        file.id,
-        pageName,
-      );
+      const studentSheetId = await findSheet(auth, file.id, pageName);
       if (studentSheetId) {
-        console.log(`Page ${pageName} already exists at ${file.name}. Deleting it...`);
+        console.log(
+          `Page ${pageName} already exists at ${file.name}. Deleting it...`
+        );
         await deleteSheet(auth, file, studentSheetId, pageName);
       }
 
@@ -154,10 +187,10 @@ async function createNewPage(
         idSpreadsheetTemplate,
         sheetIdInsideTemplate
       );
-      console.log(`Copy to file ${file.name} with sucess`);
+      console.log(`Copy to file ${file.name} with success`);
 
-      await alterSheetNameAndInfo(auth, file, pageName);
-      console.log(`Alter to file ${file.name} with sucess`);
+      await alterSheetNameAndInfo(auth, file, pageName, isProtected);
+      console.log(`Alter to file ${file.name} with success`);
     } catch (err) {
       throw new Error(
         `Error in process of file ${file.name} err: ${err?.message}`
@@ -165,5 +198,5 @@ async function createNewPage(
     }
   }
 
-  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 3 }); // GoogleAPI only accepts 10 queries per second (QPS), therefore, concurrency: 5 is a safe number.
+  return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 });
 }

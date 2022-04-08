@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 import { delay, extractStudentNameByFileName } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
@@ -109,7 +110,7 @@ export async function writeSheetStudent(
       });
     }
     await delay(25000);
-    console.log("TRYING: Write in file again; student:", studentName);
+    console.log(`TRYING: Write in file again; student: ${studentName}!`);
     await writeSheetStudent(
       auth,
       id,
@@ -137,9 +138,9 @@ export async function findSheet(auth, id, sheetName) {
     });
     return sheetTemplateId;
   } catch (err) {
-    console.log(err?.message);
-    await findSheet(auth, id, sheetName);
-    console.log(`Failed to find ${sheetName}, trying again!`);
+    console.log(`TRYING: to find sheet named ${sheetName}!`);
+    await delay(5000);
+    return await findSheet(auth, id, sheetName);
   }
 }
 
@@ -164,11 +165,9 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     await sheet.spreadsheets.batchUpdate(request);
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
-    console.log(err?.message);
+    console.log(`TRYING: to delete ${pageName} at file ${file.name}!`);
+    await delay(5000);
     await deleteSheet(auth, file, studentSheetId, pageName);
-    console.log(
-      `Failed to delete ${pageName} at file ${file.name}, trying again!`
-    );
   }
 }
 
@@ -191,14 +190,14 @@ export async function copyToNewSheet(
   try {
     await sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
-    console.log(err?.message);
+    console.log(`TRYING: to copy new sheet on document ${file.name}!`);
+    await delay(5000);
     await copyToNewSheet(
       auth,
       file,
       idSpreadsheetTemplate,
       sheetIdInsideTemplate
     );
-    console.log(`Error when copying at new sheet on document ${file.name}`);
   }
 }
 
@@ -206,12 +205,53 @@ export async function alterSheetNameAndInfo(
   auth,
   file,
   pageName,
+  isProtected,
   operationsFailed = []
 ) {
-  const sheet = google.sheets("v4");
   const actualPageName = `Cópia de ${pageName}`;
   const studentSheetId = await findSheet(auth, file.id, actualPageName);
   const studentName = extractStudentNameByFileName(file);
+
+  try {
+    await updateValues(auth, file, actualPageName, studentName);
+    await updateTitle(auth, file, studentSheetId, pageName, isProtected);
+    if (isProtected) {
+      await updateProtection(auth, file, studentSheetId);
+    }
+  } catch (err) {
+    const operation = operationsFailed.find(
+      (op) => op.id === studentSheetId && op.name == "alter_sheet"
+    );
+    if (operation !== undefined) {
+      if (operation.limit >= 5) {
+        logger.error(
+          `Can not alter sheet; error: ${err?.message} attempts:${operation.limit}`
+        );
+        throw new Error("Error in alter sheet");
+      } else {
+        operation.limit += 1;
+      }
+    } else {
+      operationsFailed.push({
+        id: studentSheetId,
+        limit: 0,
+        name: "alter_sheet",
+      });
+    }
+    console.log(`TRYING: alter in file student: ${studentName}!`);
+    await delay(25000);
+    await alterSheetNameAndInfo(
+      auth,
+      file,
+      pageName,
+      isProtected,
+      operationsFailed
+    );
+  }
+}
+
+async function updateValues(auth, file, actualPageName, studentName) {
+  const sheet = google.sheets("v4");
 
   const values = new Array(4).fill(Array(0));
   values[0] = [studentName];
@@ -226,24 +266,69 @@ export async function alterSheetNameAndInfo(
     },
   };
 
-  const requestTitle = {
-    spreadsheetId: file.id,
-    resource: {
-      requests: [
-        {
-          updateSheetProperties: {
-            properties: {
-              sheetId: studentSheetId,
-              title: pageName,
-              hidden: true,
+  try {
+    await sheet.spreadsheets.values.update(requestValues);
+  } catch (err) {
+    console.log(`TRYING: to update names on file ${file.name}!`);
+    await delay(5000);
+    await updateValues(auth, file, actualPageName, studentName);
+  }
+}
+
+async function updateTitle(auth, file, studentSheetId, pageName, isProtected) {
+  const sheet = google.sheets("v4");
+
+  let requestTitle;
+  if (isProtected) {
+    requestTitle = {
+      spreadsheetId: file.id,
+      resource: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: studentSheetId,
+                title: pageName,
+                hidden: true,
+              },
+              fields: "title, hidden",
             },
-            fields: "title, hidden",
           },
-        },
-      ],
-    },
-    auth,
-  };
+        ],
+      },
+      auth,
+    };
+  } else {
+    requestTitle = {
+      spreadsheetId: file.id,
+      resource: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: studentSheetId,
+                title: pageName,
+              },
+              fields: "title",
+            },
+          },
+        ],
+      },
+      auth,
+    };
+  }
+
+  try {
+    await sheet.spreadsheets.batchUpdate(requestTitle);
+  } catch (err) {
+    console.log(`TRYING: alter title and hidden at file: ${file.name}!`);
+    await delay(5000);
+    await updateTitle(auth, file, studentSheetId, pageName);
+  }
+}
+
+async function updateProtection(auth, file, studentSheetId) {
+  const sheet = google.sheets("v4");
 
   const requestProtect = {
     spreadsheetId: file.id,
@@ -262,35 +347,66 @@ export async function alterSheetNameAndInfo(
     },
     auth,
   };
+  try {
+    await sheet.spreadsheets.batchUpdate(requestProtect);
+  } catch (err) {
+    console.log(`TRYING: to update protect range at file: ${file.name}`);
+    await delay(5000);
+    await updateProtection(auth, file, studentSheetId);
+  }
+}
+
+export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
+  const INITIAL_ROW = 11;
+  const NAME_COLUMN = 0;
+  const EMAIL_COLUMN = 1;
+  const PERCENTAGE_COLUMN = 4;
+  const DAYS_OFF_COLUMN = 5;
+
+  const students = [];
+
+  let row = INITIAL_ROW;
+  let name, email, percentage, daysOff;
+
+  do {
+    try {
+      name = sheet.getCell(row, NAME_COLUMN).value;
+      email = sheet.getCell(row, EMAIL_COLUMN).value;
+      percentage = sheet.getCell(row, PERCENTAGE_COLUMN).value;
+      daysOff = sheet.getCell(row, DAYS_OFF_COLUMN).value;
+
+      if (name && email && percentage && percentage < 0.9 && daysOff <= 20)
+        students.push({
+          name,
+          email,
+          percentage: Number((percentage * 100).toFixed(1)),
+        });
+
+      row++;
+    } catch {
+      throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
+    }
+  } while (name !== "Presença Síncrona" && row < endpoint);
+
+  return students;
+}
+
+export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+  const doc = new GoogleSpreadsheet(id);
+  doc.useOAuth2Client(auth);
 
   try {
-    const updateName = await sheet.spreadsheets.values.update(requestValues);
-    const updateTitle = await sheet.spreadsheets.batchUpdate(requestTitle);
-    const updateProtect = await sheet.spreadsheets.batchUpdate(requestProtect);
-    Promise.all([updateName, updateTitle, updateProtect]);
-  } catch (err) {
-    console.log(err?.message);
-    const operation = operationsFailed.find(
-      (op) => op.id === studentSheetId && op.name == "alter_sheet"
-    );
-    if (operation !== undefined) {
-      if (operation.limit >= 5) {
-        logger.error(
-          `Can not alter sheet; error: ${err?.message} attempts:${operation.limit}`
-        );
-        throw new Error("Error in alter sheet");
-      } else {
-        operation.limit += 1;
-      }
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle[sheetTitle];
+
+    if (ranges) {
+      await sheet.loadCells(ranges);
     } else {
-      operationsFailed.push({
-        studentSheetId,
-        limit: 0,
-        name: "alter_sheet",
-      });
+      await sheet.loadCells();
     }
-    await delay(25000);
-    console.log("TRYING: alter in file again; student:", studentName);
-    await alterSheetNameAndInfo(auth, file, pageName, operationsFailed);
+
+    return sheet;
+  } catch (err) {
+    throw new Error("Error in init spreadsheet");
   }
 }

@@ -29,6 +29,7 @@ export async function updateSheet(req, res) {
     folderLinkSpreadsheet,
     linkSpreadsheetTemplate,
     spreadsheetPageName,
+    isProtected,
     token,
   } = req.body;
 
@@ -39,6 +40,7 @@ export async function updateSheet(req, res) {
     folderId,
     idSpreadsheetTemplate,
     spreadsheetPageName,
+    isProtected,
     token
   );
 
@@ -47,4 +49,24 @@ export async function updateSheet(req, res) {
   }
 
   return res.sendStatus(200);
+}
+
+export async function getStudentsUnderNinetyPercent(req, res) {
+  const { linkSpreadsheetStudents, token, endpoint } = req.body;
+
+  try {
+    const studentsInfo = await mainService.getStudentsUnderNinetyPercent(
+      extractIdByUrl(linkSpreadsheetStudents),
+      token,
+      endpoint
+    );
+    res.send(studentsInfo);
+  } catch (error) {
+    console.error(error);
+
+    if (error.message.includes("READ_ERROR"))
+      return res.status(404).send(error.message);
+
+    res.sendStatus(500);
+  }
 }
