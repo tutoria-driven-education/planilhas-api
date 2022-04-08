@@ -6,7 +6,7 @@ import { logger } from "../utils/logger.js";
 export async function getStudents(auth, id, amountOfStudents) {
   const sheetTitle = "Dashboard";
   const initRowStudents = 12;
-  const lastRowStudents = parseInt(amountOfStudents) + initRowStudents;
+  const lastRowStudents = (parseInt(amountOfStudents) + initRowStudents) - 1;
   const request = {
     spreadsheetId: id,
     range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
