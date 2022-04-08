@@ -153,6 +153,7 @@ export async function getIdsInsideFolder(auth, id) {
     return await Promise.resolve(
       drive.files.list({
         fields: "files(id, name)",
+        pageSize: 1000,
         q: `'${id}' in parents and name contains 'Controle de Presença'`,
       })
     );
