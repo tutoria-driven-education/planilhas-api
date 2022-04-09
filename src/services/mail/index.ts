@@ -15,15 +15,19 @@ export default function sendMailForStudent({
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-  const template = getTemplateEmailForStudent({ studentName, sheetId, ...rest});
+  const template = getTemplateEmailForStudent({
+    studentName,
+    sheetId,
+    ...rest,
+  });
   var mailOptions = {
     from: process.env.EMAIL_USERNAME,
-    to: studentEmail,
+    to: "yann.melo@driven.com.br",
     subject: `Olá ${studentName}! Sua planilha individual de presença está pronta`,
     html: template,
   };
 
-  return mail.sendMail(mailOptions, (err, _info) => {
+  return mail.sendMail(mailOptions, async function (err, _info) {
     if (err) {
       console.log("Error sending email: ", err?.message);
     } else {
