@@ -1,7 +1,7 @@
 import { IGetTemplateEmailForStudent } from "./../services/mail/index.d";
 export default function getTemplateEmailForStudent({
   studentName,
-  spreadId,
+  sheetId,
   email = "eduardo.grossmann@driven.com.br",
   usernameSlack = "@Dudu",
 }: IGetTemplateEmailForStudent) {

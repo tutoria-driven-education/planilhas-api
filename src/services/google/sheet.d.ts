@@ -1,9 +1,14 @@
 export interface IGetStudentsParams {
   id: string;
-  amountOfStudents: number;
+  amountStudents: number;
 }
 export interface IWriteSpreadSheet {
   id: string;
   studentName: string;
   studentEmail: string;
+}
+
+export interface IStudent {
+  email: string;
+  name: string;
 }

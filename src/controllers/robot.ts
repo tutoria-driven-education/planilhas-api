@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as mainService from "../services/main";
+import * as mainService from "../services/robot";
 import { extractIdByUrl } from "../utils/index";
 
 export async function generateSpreadsheets(req: Request, res: Response) {

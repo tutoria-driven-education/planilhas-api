@@ -1,4 +1,4 @@
-import { IGetStudentsParams, IWriteSpreadSheet } from "./sheet.d";
+import { IGetStudentsParams, IStudent, IWriteSpreadSheet } from "./sheet.d";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import { templateSpreadsheet } from "../../config";
@@ -8,9 +8,12 @@ export class Sheet {
   constructor(auth: OAuth2Client) {
     this.sheet = google.sheets({ version: "v4", auth });
   }
-  async getStudents({ id, amountOfStudents }: IGetStudentsParams) {
+  async getStudents({
+    id,
+    amountStudents,
+  }: IGetStudentsParams): Promise<IStudent[]> {
     const lastRowStudents =
-      amountOfStudents + templateSpreadsheet.initRowStudents;
+      amountStudents + templateSpreadsheet.initRowStudents;
     const request = {
       spreadsheetId: id,
       range: `${templateSpreadsheet.sheetTitleStudents}!A${templateSpreadsheet.initRowStudents}:B${lastRowStudents}`,
@@ -54,17 +57,17 @@ export class Sheet {
 
         return response;
       } catch (error) {
-        throw new Error(`Error in write student ${newValue}: ${error?.message}`);
+        throw new Error(
+          `Error in write student ${newValue}: ${error?.message}`
+        );
       }
     }
 
     try {
-      await updateSheet("Controle!A1:A25",studentName)
-      await updateSheet("Controle!B1:B25",studentEmail)
+      await updateSheet("Controle!A1:A25", studentName);
+      await updateSheet("Controle!B1:B25", studentEmail);
     } catch (error) {
       throw new Error(`Error in write sheet: ${error?.message} `);
     }
   }
-
-  
 }

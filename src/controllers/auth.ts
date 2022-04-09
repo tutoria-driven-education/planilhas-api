@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as authService from "../services/auth";
+import * as authService from "../services/google/auth";
 
 export async function getLinkToken(req: Request, res: Response) {
   const { email, password } = req.body;

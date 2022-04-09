@@ -1,11 +1,12 @@
 import NodeMailer from "nodemailer";
 import { ISendMailForStudent } from "./index.d";
-import mailTemplate from "../../templates/mail";
+import getTemplateEmailForStudent from "../../templates/mail";
 
 export default function sendMailForStudent({
   studentName,
   studentEmail,
   sheetId,
+  ...rest
 }: ISendMailForStudent) {
   const mail = NodeMailer.createTransport({
     service: "gmail",
@@ -14,7 +15,7 @@ export default function sendMailForStudent({
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-  const template = mailTemplate(studentName, sheetId);
+  const template = getTemplateEmailForStudent({ studentName, sheetId, ...rest});
   var mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: studentEmail,
