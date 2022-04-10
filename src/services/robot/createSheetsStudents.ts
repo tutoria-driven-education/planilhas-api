@@ -1,12 +1,14 @@
 import { Credentials } from "google-auth-library";
+import { v4 as uuid } from "uuid";
 
 import { promiseMap } from "../../lib/promiseMap";
 import { authorize } from "../google/auth";
 import { Drive } from "../google/drive";
 import { Sheet } from "../google/sheet";
 import sendStudentMail from "../mail";
-import { logger } from "../../utils/logger.js";
+import { logger } from "../../utils/logger";
 import { IStudent } from "../google/sheet.d";
+import { tryAgain } from "../../utils";
 
 interface ICreateSheetStudentsParams {
   idSpreadsheetStudents: string;
@@ -22,6 +24,7 @@ interface IUploadStudentsParams {
   drive: Drive;
   sheet: Sheet;
 }
+
 async function uploadFilesStudents({
   students,
   folderId,
@@ -29,30 +32,60 @@ async function uploadFilesStudents({
   drive,
   sheet,
 }: IUploadStudentsParams) {
+  const delayTime = 2000;
+  const maxAttempts = 5;
   async function createStudentComplete(student: IStudent) {
     let studentName = student.name;
     let fileNameInDrive = `${studentName} - Controle de Presença`;
 
     try {
-      const spreadsheetStudentId = await drive.copySpreadsheet({
-        id: idSpreadsheetTemplate,
-        folderId,
-        nameFile: fileNameInDrive,
+      const fnCopySpreadsheet = () => {
+        return drive.copySpreadsheet({
+          spreadsheetId: idSpreadsheetTemplate,
+          folderId,
+          nameFile: fileNameInDrive,
+        });
+      };
+
+      const spreadsheetStudentId = await tryAgain({
+        Fn: fnCopySpreadsheet,
+        id: uuid(),
+        delayTime,
+        maxAttempts,
       });
 
-      await drive.updatePermissionFileForAnyoneReader({
-        id: spreadsheetStudentId,
+      const fnUpdatePermission = () => {
+        return drive.updatePermissionFileForAnyoneReader({
+          id: spreadsheetStudentId,
+        });
+      };
+      await tryAgain({
+        Fn: fnUpdatePermission,
+        delayTime,
+        id: uuid(),
+        maxAttempts,
       });
 
-      await sheet.writeSheetStudent({
-        id: spreadsheetStudentId,
-        studentName,
-        studentEmail: student.email,
+      const fnWriteStudent = () => {
+        return sheet.writeSheetStudent({
+          id: spreadsheetStudentId,
+          studentName,
+          studentEmail: student.email,
+        });
+      };
+
+      await tryAgain({
+        Fn: fnWriteStudent,
+        id: uuid(),
+        delayTime,
+        maxAttempts,
       });
       // await sendStudentMail(student.name, student.email, studentId);
     } catch (error) {
       logger.info(
-        `Error in process of student ${studentName} error: ${error?.message}`
+        `Error in process of student ${studentName} error: ${
+          error?.message
+        } time: ${new Date()}`
       );
     }
   }
@@ -81,7 +114,7 @@ export async function createSheetStudents({
     id: idSpreadsheetStudents,
     amountStudents,
   });
-
+  console.log("Start upload of spreadsheets... ");
   await uploadFilesStudents({
     students,
     folderId,

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import * as mainService from "../services/robot";
+import * as createSpreadsheetService from "../services/robot/createSheetsStudents";
+import * as updateSpreadsheetService from "../services/robot/updateSheetStudents";
 import { extractIdByUrl } from "../utils/index";
 
 export async function generateSpreadsheets(req: Request, res: Response) {
@@ -14,13 +15,13 @@ export async function generateSpreadsheets(req: Request, res: Response) {
   const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents);
   const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  await mainService.execute(
+  await createSpreadsheetService.createSheetStudents({
     idSpreadsheetStudents,
     idSpreadsheetTemplate,
-    amountStudents,
-    className,
-    token
-  );
+    amountStudents: parseInt(amountStudents),
+    folderName: className,
+    token,
+  });
 
   return res.sendStatus(200);
 }
@@ -37,13 +38,13 @@ export async function updateSheet(req: Request, res: Response) {
   const folderId = extractIdByUrl(folderLinkSpreadsheet);
   const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
 
-  const result = await mainService.executeUpdate(
+  const result = await updateSpreadsheetService.updateSheet({
     folderId,
     idSpreadsheetTemplate,
-    spreadsheetPageName,
+    pageName: spreadsheetPageName,
     isProtected,
-    token
-  );
+    token,
+  });
 
   if (result === null) {
     return res.sendStatus(400);
@@ -51,8 +52,11 @@ export async function updateSheet(req: Request, res: Response) {
 
   return res.sendStatus(200);
 }
-
-export async function getStudentsUnderNinetyPercent(req, res) {
+/*
+export async function getStudentsUnderNinetyPercent(
+  req: Request,
+  res: Response
+) {
   const { linkSpreadsheetStudents, token, endpoint } = req.body;
 
   try {
@@ -71,3 +75,4 @@ export async function getStudentsUnderNinetyPercent(req, res) {
     res.sendStatus(500);
   }
 }
+*/

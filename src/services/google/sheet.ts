@@ -10,7 +10,7 @@ import {
   ICopySheetParams,
 } from "./sheet.d";
 import { OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
+import { google, sheets_v4 } from "googleapis";
 import { templateSpreadsheet } from "../../config";
 
 export class Sheet {
@@ -24,7 +24,7 @@ export class Sheet {
     amountStudents,
   }: IGetStudentsParams): Promise<IStudent[]> {
     const lastRowStudents =
-      amountStudents + templateSpreadsheet.initRowStudents;
+      amountStudents + templateSpreadsheet.initRowStudents - 1;
     const request = {
       spreadsheetId: id,
       range: `${templateSpreadsheet.sheetTitleStudents}!A${templateSpreadsheet.initRowStudents}:B${lastRowStudents}`,
@@ -50,7 +50,11 @@ export class Sheet {
     studentName,
     studentEmail,
   }: IWriteStudentSpreadSheetParams) {
-    async function updateSheet(range: string, newValue: string) {
+    async function updateSheet(
+      range: string,
+      newValue: string,
+      sheet: sheets_v4.Sheets
+    ) {
       const values = new Array(25).fill(Array(0));
       values[15] = [newValue];
       values[21] = [newValue];
@@ -63,8 +67,7 @@ export class Sheet {
         },
       };
       try {
-        const response = (await this.sheet.spreadsheets.values.update(request))
-          .data;
+        const response = (await sheet.spreadsheets.values.update(request)).data;
 
         return response;
       } catch (error) {
@@ -75,8 +78,10 @@ export class Sheet {
     }
 
     try {
-      await updateSheet("Controle!A1:A25", studentName);
-      await updateSheet("Controle!B1:B25", studentEmail);
+      await Promise.all([
+        updateSheet("Controle!A1:A25", studentName, this.sheet),
+        updateSheet("Controle!B1:B25", studentEmail, this.sheet),
+      ]);
     } catch (error) {
       throw new Error(`Error in write sheet: ${error?.message} `);
     }
@@ -205,8 +210,12 @@ export class Sheet {
       throw new Error(`Error in add protection sheet: ${error?.message} `);
     }
   }
-  
-  async copySheet({ destinationSpreadsheetId, spreadsheetId, sheetId }:ICopySheetParams) {
+
+  async copySheet({
+    destinationSpreadsheetId,
+    spreadsheetId,
+    sheetId,
+  }: ICopySheetParams) {
     const request = {
       spreadsheetId,
       sheetId,
@@ -218,7 +227,6 @@ export class Sheet {
       await this.sheet.spreadsheets.sheets.copyTo(request);
     } catch (error) {
       throw new Error(`Error in copy sheet: ${error?.message} `);
-
     }
   }
 
@@ -228,32 +236,32 @@ export class Sheet {
   //   const EMAIL_COLUMN = 1;
   //   const PERCENTAGE_COLUMN = 4;
   //   const DAYS_OFF_COLUMN = 5;
-  
+
   //   const students = [];
-  
+
   //   let row = INITIAL_ROW;
   //   let name, email, percentage, daysOff;
-  
+
   //   do {
   //     try {
   //       name = sheet.getCell(row, NAME_COLUMN).value;
   //       email = sheet.getCell(row, EMAIL_COLUMN).value;
   //       percentage = sheet.getCell(row, PERCENTAGE_COLUMN).value;
   //       daysOff = sheet.getCell(row, DAYS_OFF_COLUMN).value;
-  
+
   //       if (name && email && percentage && percentage < 0.9 && daysOff <= 20)
   //         students.push({
   //           name,
   //           email,
   //           percentage: Number((percentage * 100).toFixed(1)),
   //         });
-  
+
   //       row++;
   //     } catch {
   //       throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
   //     }
   //   } while (name !== "Presença Síncrona" && row < endpoint);
-  
+
   //   return students;
   // }
 }

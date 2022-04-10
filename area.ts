@@ -1,21 +1,8 @@
-import { logger } from "./logger";
-export function extractIdByUrl(url: string) {
-  const id = url.split("/")[5];
-  return id;
-}
-
 export async function delay(time: number): Promise<void> {
   return await new Promise((resolver, _reject) => {
     setTimeout(resolver, time);
   });
 }
-
-export function extractStudentNameByFileName(fileName: string) {
-  const index = fileName.indexOf("-");
-  const studentName = fileName.slice(0, index - 1);
-  return studentName;
-}
-
 interface ITryAgainParams {
   delayTime: number;
   Fn: (params?: any) => any;
@@ -41,7 +28,7 @@ export async function tryAgain({
     const operation = operationsFailed.find((op) => op.id === id);
     if (operation != undefined) {
       if (operation.limit >= maxAttempts) {
-        logger.error(`${JSON.stringify(operation)} -- time: ${new Date()}`);
+        // logger.error(JSON.stringify(operation));
         throw new Error(`Max attempts hit! ${error?.message}`);
       } else {
         operation.limit += 1;
@@ -57,3 +44,24 @@ export async function tryAgain({
     return await tryAgain({ Fn, delayTime, id, maxAttempts });
   }
 }
+
+export async function returnName(name: string) {
+  await delay(2000);
+  return name;
+}
+
+const Fn = () => {
+  returnName("batata");
+};
+
+async function run() {
+  const c = await tryAgain({
+    Fn,
+    delayTime: 2000,
+    id: "123445",
+    maxAttempts: 5,
+  });
+  console.log(c);
+}
+
+run();
