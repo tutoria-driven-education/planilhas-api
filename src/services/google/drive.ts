@@ -60,11 +60,11 @@ export class Drive {
     }
   }
 
-  async copySpreadsheet({ id, folderId, nameFile }: ICopySpreadsheetParams) {
+  async copySpreadsheet({ spreadsheetId, folderId, nameFile }: ICopySpreadsheetParams) {
     try {
       const request = await Promise.resolve(
         this.drive.files.copy({
-          fileId: id,
+          fileId: spreadsheetId,
           requestBody: {
             parents: [folderId],
             name: nameFile,
@@ -100,12 +100,13 @@ export class Drive {
 
   async getFilesIdsInsideFolder({ folderId }: IGetFilesIdsInsideFolder) {
     try {
-      return await Promise.resolve(
+      const filesIds = await Promise.resolve(
         this.drive.files.list({
           fields: "files(id, name)",
           q: `'${folderId}' in parents and name contains 'Controle de Presença'`,
         })
       );
+      return  filesIds.data.files
     } catch (error) {
       throw new Error(`Error getting all id's inside folder ${error?.message}`);
     }

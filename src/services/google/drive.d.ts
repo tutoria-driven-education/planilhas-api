@@ -10,7 +10,7 @@ export interface ICreateFolderParams {
 }
 
 export interface ICopySpreadsheetParams {
-  id: string;
+  spreadsheetId: string;
   folderId: string;
   nameFile: string;
 }

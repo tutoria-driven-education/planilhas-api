@@ -9,10 +9,8 @@ export async function delay(time: number): Promise<void> {
   });
 }
 
-export function extractStudentNameByFileName(file: {
-  name: string | string[];
-}) {
-  const index = file.name.indexOf("-");
-  const studentName = file.name.slice(0, index - 1);
+export function extractStudentNameByFileName(fileName:string) {
+  const index = fileName.indexOf("-");
+  const studentName = fileName.slice(0, index - 1);
   return studentName;
 }
