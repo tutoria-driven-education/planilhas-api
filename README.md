@@ -8,6 +8,7 @@ O projeto ainda está em desenvolvimento e as próximas atualizações serão vo
 
 - [x] Geração de planilhas de forma automática
 - [x] Atualização das planilhas em escala
+- [x] Atualizar planilhas existentes em escala
 - [ ] Atualização dos dados usando zoom api
 - [ ] Integração com o tutor bot para o envio de mensagens pelo slack
 
