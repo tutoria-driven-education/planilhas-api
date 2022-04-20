@@ -269,7 +269,7 @@ async function updateValues(auth, file, actualPageName, studentName) {
   try {
     await sheet.spreadsheets.values.update(requestValues);
   } catch (err) {
-    console.log(`TRYING: to update names on file ${file.name}!`);
+    console.log(`TRYING: to update names on file ${file.name}!`, err?.message);
     await delay(5000);
     await updateValues(auth, file, actualPageName, studentName);
   }
