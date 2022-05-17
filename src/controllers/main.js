@@ -70,3 +70,30 @@ export async function getStudentsUnderNinetyPercent(req, res) {
     res.sendStatus(500);
   }
 }
+
+export async function updateControl(req, res) {
+  const {
+    folderLinkSpreadsheet,
+    linkSpreadsheetTemplate,
+    spreadsheetPageName,
+    isProtected,
+    token,
+  } = req.body;
+
+  const folderId = extractIdByUrl(folderLinkSpreadsheet);
+  const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
+
+  const result = await mainService.executeUpdateControl(
+    folderId,
+    idSpreadsheetTemplate,
+    spreadsheetPageName,
+    isProtected,
+    token
+  );
+
+  if (result === null) {
+    return res.sendStatus(400);
+  }
+
+  return res.sendStatus(200);
+}

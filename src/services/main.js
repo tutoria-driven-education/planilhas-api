@@ -15,6 +15,8 @@ import {
   alterSheetNameAndInfo,
   getStudentsInfoWithAttendancePercentage,
   initSpreadsheet,
+  getStudentControlData,
+  alterControlSheet,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
@@ -206,4 +208,93 @@ async function createNewPage(
   }
 
   return promiseMap(arrayFilesId, updateStudentsFiles, { concurrency: 5 });
+}
+
+export async function executeUpdateControl(
+  folderId,
+  idSpreadsheetTemplate,
+  pageName,
+  isProtected,
+  token
+) {
+  const auth = await authorize(token);
+  console.log("Success on authenticate!");
+
+  const sheetIdInsideTemplate = await findSheet(
+    auth,
+    idSpreadsheetTemplate,
+    pageName
+  );
+
+  if (sheetIdInsideTemplate === null) {
+    console.log("Sheet dont exist in template");
+    return sheetIdInsideTemplate;
+  } else {
+    console.log("Success on getting sheetId!");
+  }
+
+  const {
+    data: { files: arrayFilesId },
+  } = await getIdsInsideFolder(auth, folderId);
+  console.log("Success on getting files id!");
+
+  await createNewControlPage(
+    auth,
+    arrayFilesId,
+    idSpreadsheetTemplate,
+    sheetIdInsideTemplate,
+    isProtected,
+    pageName
+  );
+  console.log("Done!");
+}
+
+async function createNewControlPage(
+  auth,
+  arrayFilesId,
+  idSpreadsheetTemplate,
+  sheetIdInsideTemplate,
+  isProtected,
+  pageName
+) {
+  async function updateStudentsControl(file) {
+    try {
+      const studentSheetId = await findSheet(auth, file.id, pageName);
+      let studentData = null;
+      if (studentSheetId || studentSheetId === 0) {
+        studentData = await getStudentControlData(
+          auth,
+          file,
+          studentSheetId,
+          pageName
+        );
+        console.log(`Getting student data at ${file.name}...`);
+        await deleteSheet(auth, file, studentSheetId, pageName);
+        console.log(
+          `Page ${pageName} already exists at ${file.name}. Deleting it...`
+        );
+      }
+      if (studentData === null) {
+        throw new Error(
+          `Problem processing student data at file: ${file.name}`
+        );
+      }
+      console.log(`Starting copy to file ${file.name}...`);
+      await copyToNewSheet(
+        auth,
+        file,
+        idSpreadsheetTemplate,
+        sheetIdInsideTemplate
+      );
+      console.log(`Copy to file ${file.name} with success`);
+
+      await alterControlSheet(auth, file, pageName, isProtected, studentData);
+    } catch (err) {
+      throw new Error(
+        `Error in process of file ${file.name} err: ${err?.message}`
+      );
+    }
+  }
+
+  return promiseMap(arrayFilesId, updateStudentsControl, { concurrency: 5 });
 }
