@@ -574,7 +574,6 @@ export async function writeCareerSheetStudent(
 
   try {
     await sheet.spreadsheets.values.update(request);
-    console.log(`Sucess on updating name at file ${fileNameInDrive}`);
   } catch (error) {
     console.log(
       `TRYING: to update name on file ${fileNameInDrive}!`,
