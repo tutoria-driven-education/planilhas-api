@@ -17,10 +17,12 @@ import {
   initSpreadsheet,
   getStudentControlData,
   alterControlSheet,
+  writeCareerSheetStudent,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
 import NodeMailer from "nodemailer";
+import { extractStudentNameByFileName } from "../utils/index.js";
 
 const operationsFailed = [];
 
@@ -297,4 +299,72 @@ async function createNewControlPage(
   }
 
   return promiseMap(arrayFilesId, updateStudentsControl, { concurrency: 5 });
+}
+
+export async function executeCarrer(
+  folderIdWithStudents,
+  idSpreadsheetTemplate,
+  pageName,
+  folderName,
+  token
+) {
+  const auth = await authorize(token);
+  console.log("Success on authenticate!");
+
+  const createdFolderId = await createFolder(auth, folderName);
+  console.log("Creating class folder!");
+
+  const {
+    data: { files: arrayFilesId },
+  } = await getIdsInsideFolder(auth, folderIdWithStudents);
+  console.log("Success on getting files id!");
+
+  await createNewCareerPage(
+    auth,
+    arrayFilesId,
+    idSpreadsheetTemplate,
+    pageName,
+    createdFolderId
+  );
+
+  console.log("Done!");
+}
+
+async function createNewCareerPage(
+  auth,
+  arrayFilesId,
+  idSpreadsheetTemplate,
+  pageName,
+  createdFolderId
+) {
+  async function createCareerPage(file) {
+    const studentName = extractStudentNameByFileName(file);
+    const fileNameInDrive = `${studentName} - Applications`;
+
+    try {
+      const studentId = await copyFile(
+        auth,
+        idSpreadsheetTemplate,
+        createdFolderId,
+        fileNameInDrive,
+        operationsFailed
+      );
+      console.log(`Copy file ${fileNameInDrive} with success!`);
+
+      await writeCareerSheetStudent(
+        auth,
+        studentId,
+        studentName,
+        pageName,
+        fileNameInDrive
+      );
+      console.log(`Student ${studentName} file rewritten!`);
+    } catch (error) {
+      logger.info(
+        `Error in process of student ${studentName} error: ${error?.message}`
+      );
+    }
+  }
+
+  return promiseMap(arrayFilesId, createCareerPage, { concurrency: 5 });
 }

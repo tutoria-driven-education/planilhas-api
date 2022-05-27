@@ -97,3 +97,30 @@ export async function updateControl(req, res) {
 
   return res.sendStatus(200);
 }
+
+export async function executeCarrer(req, res) {
+  const {
+    folderLinkSpreadsheet,
+    linkSpreadsheetTemplate,
+    spreadsheetPageName,
+    folderName,
+    token,
+  } = req.body;
+
+  const folderId = extractIdByUrl(folderLinkSpreadsheet);
+  const idSpreadsheetTemplate = extractIdByUrl(linkSpreadsheetTemplate);
+
+  const result = await mainService.executeCarrer(
+    folderId,
+    idSpreadsheetTemplate,
+    spreadsheetPageName,
+    folderName,
+    token
+  );
+
+  if (result === null) {
+    res.sendStatus(400);
+  }
+
+  return res.sendStatus(200);
+}

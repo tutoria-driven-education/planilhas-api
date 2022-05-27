@@ -550,3 +550,37 @@ async function updateControlValues(auth, file, actualPageName, studentData) {
     await updateControlValues(auth, file, actualPageName, studentData);
   }
 }
+
+export async function writeCareerSheetStudent(
+  auth,
+  id,
+  studentName,
+  pageName,
+  fileNameInDrive
+) {
+  const sheet = google.sheets("v4");
+  const values = new Array(2).fill(Array(0));
+  values[0] = [studentName];
+
+  const request = {
+    spreadsheetId: id,
+    range: `${pageName}!C3:C4`,
+    valueInputOption: "raw",
+    auth,
+    resource: {
+      values,
+    },
+  };
+
+  try {
+    await sheet.spreadsheets.values.update(request);
+    console.log(`Sucess on updating name at file ${fileNameInDrive}`);
+  } catch (error) {
+    console.log(
+      `TRYING: to update name on file ${fileNameInDrive}!`,
+      error?.message
+    );
+    await delay(5000);
+    writeCareerSheetStudent(auth, id, studentName, pageName, fileNameInDrive);
+  }
+}

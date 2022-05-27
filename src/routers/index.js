@@ -14,6 +14,7 @@ router.post("/api/auth/token", authController.getTokenGoogle);
 router.post("/api/execute", mainController.execute);
 router.post("/api/update", mainController.updateSheet);
 router.post("/api/control", mainController.updateControl);
+router.post("/api/career", mainController.executeCarrer);
 
 router.get(
   "/api/students-attendance",
