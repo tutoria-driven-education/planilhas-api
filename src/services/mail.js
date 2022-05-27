@@ -5,7 +5,7 @@ export default async function sendStudentMail(mail, studentName, studentEmail, s
   const template = mailTemplate(studentName, sheetId);
   var mailOptions = {
     from: process.env.EMAIL_USERNAME,
-    to: "yann.melo@driven.com.br",
+    to: studentEmail,
     subject: `Olá ${studentName}! Sua planilha individual de presença está pronta`,
     html: template,
   };
