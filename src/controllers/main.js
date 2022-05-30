@@ -30,6 +30,7 @@ export async function updateSheet(req, res) {
     linkSpreadsheetTemplate,
     spreadsheetPageName,
     isProtected,
+    isHidden,
     token,
   } = req.body;
 
@@ -41,6 +42,7 @@ export async function updateSheet(req, res) {
     idSpreadsheetTemplate,
     spreadsheetPageName,
     isProtected,
+    isHidden,
     token
   );
 

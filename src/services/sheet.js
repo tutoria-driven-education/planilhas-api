@@ -205,6 +205,7 @@ export async function alterSheetNameAndInfo(
   file,
   pageName,
   isProtected,
+  isHidden,
   operationsFailed = []
 ) {
   const actualPageName = `Cópia de ${pageName}`;
@@ -218,7 +219,7 @@ export async function alterSheetNameAndInfo(
       file,
       studentSheetId,
       pageName,
-      isProtected
+      isHidden
     );
     if (isProtected) {
       await updateProtection(auth, file, studentSheetId);
@@ -250,6 +251,7 @@ export async function alterSheetNameAndInfo(
       file,
       pageName,
       isProtected,
+      isHidden,
       operationsFailed
     );
   }
@@ -396,12 +398,12 @@ export async function updateTitleAndHidden(
   file,
   studentSheetId,
   pageName,
-  isProtected
+  isHidden
 ) {
   const sheet = google.sheets("v4");
 
   let requestTitle;
-  if (isProtected) {
+  if (isHidden) {
     requestTitle = {
       spreadsheetId: file.id,
       resource: {
@@ -442,7 +444,7 @@ export async function updateTitleAndHidden(
 
   try {
     await sheet.spreadsheets.batchUpdate(requestTitle);
-    if (isProtected) {
+    if (isHidden) {
       console.log(`Sucess on updating title and hidden at file ${file.name}`);
     } else {
       console.log(`Sucess on updating title at file ${file.name}`);
@@ -455,7 +457,7 @@ export async function updateTitleAndHidden(
       file,
       studentSheetId,
       pageName,
-      isProtected
+      isHidden
     );
   }
 }

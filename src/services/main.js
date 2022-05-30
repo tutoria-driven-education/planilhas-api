@@ -112,6 +112,7 @@ export async function executeUpdate(
   idSpreadsheetTemplate,
   pageName,
   isProtected,
+  isHidden,
   token
 ) {
   const auth = await authorize(token);
@@ -140,6 +141,7 @@ export async function executeUpdate(
     idSpreadsheetTemplate,
     sheetIdInsideTemplate,
     isProtected,
+    isHidden,
     pageName
   );
   console.log("Done!");
@@ -179,6 +181,7 @@ async function createNewPage(
   idSpreadsheetTemplate,
   sheetIdInsideTemplate,
   isProtected,
+  isHidden,
   pageName
 ) {
   async function updateStudentsFiles(file) {
@@ -200,7 +203,7 @@ async function createNewPage(
       );
       console.log(`Copy to file ${file.name} with success`);
 
-      await alterSheetNameAndInfo(auth, file, pageName, isProtected);
+      await alterSheetNameAndInfo(auth, file, pageName, isProtected, isHidden);
       console.log(`Alter to file ${file.name} with success`);
     } catch (err) {
       throw new Error(
