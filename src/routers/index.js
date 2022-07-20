@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.js";
 import * as mainController from "../controllers/main.js";
+import { logger } from "../utils/logger.js";
 const router = Router();
 
 router.get("/test", (req, res) => {
@@ -20,5 +21,11 @@ router.get(
   "/api/students-attendance",
   mainController.getStudentsUnderNinetyPercent
 );
+
+router.get("/log", (req, res) => {
+  logger.info("Adicionando no info");
+  logger.error("Adicionando nao error");
+  return res.send("Hello world");
+});
 
 export { router };
