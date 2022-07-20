@@ -496,13 +496,8 @@ export default function mailTemplate(studentName, spreadId) {
                                   </p>
                                   <br />
                                   <p style="font-size: 14px; line-height: 140%">
-                                    <br /><span
-                                      style="
-                                        font-size: 16px;
-                                        line-height: 22.4px;
-                                      "
-                                      >Mafê,</span
-                                    ><br /><strong>Driven Education</strong
+                                    <br />
+                                    <br /><strong>Driven Education</strong
                                     ><br />&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                                     &nbsp; &nbsp; &nbsp;
                                   </p>
