@@ -492,29 +492,7 @@ export default function mailTemplate(studentName, spreadId) {
                                     "
                                   >
                                     Tem algum questionamento ou feedback? Você
-                                    pode nos contactar a qualquer momento em:
-                                    <span
-                                      style="
-                                        color: #ff4791;
-                                        font-size: 14px;
-                                        line-height: 19.6px;
-                                      "
-                                      >@Dudu</span
-                                    > no slack ou 
-                                    <span
-                                      style="
-                                        color: #ff4791;
-                                        font-size: 14px;
-                                        line-height: 19.6px;
-                                      "
-                                      ><a
-                                        style="color: #ff4791"
-                                        href="mailto:eduardo.grossmann@driven.com.br"
-                                        target="_blank"
-                                        rel="noopener"
-                                        >eduardo.grossmann@driven.com.br</a
-                                      ></span
-                                    >
+                                    pode se contactar a qualquer momento com o seu coordenador de turma.
                                   </p>
                                   <br />
                                   <p style="font-size: 14px; line-height: 140%">
@@ -534,7 +512,6 @@ export default function mailTemplate(studentName, spreadId) {
                             </tr>
                           </tbody>
                         </table>
-
                         <table
                           style="font-family: arial, helvetica, sans-serif"
                           role="presentation"
