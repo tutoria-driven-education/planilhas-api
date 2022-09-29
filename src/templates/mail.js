@@ -1,6 +1,5 @@
 export default function mailTemplate(studentName, spreadId) {
-  return `
-<html
+  return `<html
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:v="urn:schemas-microsoft-com:vml"
   xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -443,7 +442,7 @@ export default function mailTemplate(studentName, spreadId) {
                                 style="
                                   overflow-wrap: break-word;
                                   word-break: break-word;
-                                  padding: 10px 15px;
+                                  padding: 10px 18px;
                                   font-family: arial, helvetica, sans-serif;
                                 "
                                 align="left"
@@ -462,14 +461,16 @@ export default function mailTemplate(studentName, spreadId) {
                                         font-size: 16px;
                                         line-height: 22.4px;
                                       "
-                                      ><strong>Olá ${studentName},</strong></span
+                                      ><strong
+                                        >Olá ${studentName},</strong
+                                      ></span
                                     >
                                   </p>
                                   <p
                                     style="
                                       font-size: 14px;
                                       line-height: 140%;
-                                      text-align: center;
+                                      text-align: justify;
                                     "
                                   >
                                     <br /><span
@@ -478,8 +479,15 @@ export default function mailTemplate(studentName, spreadId) {
                                         line-height: 22.4px;
                                       "
                                       >Esse é um email gerado automaticamente,
-                                      contendo a sua planilha individual de <strong>presença</strong>! Nessa planilha você vai conseguir ver suas presenças nas <strong>aulas</strong>, quantidades de faltas restantes e quantas faltas você já tem!</span
-                                    >
+                                      contendo a sua planilha individual de
+                                      <strong>presença</strong>! Nessa planilha você vai encontrar duas abas!
+                                      <br />
+                                      <br />
+                                      <strong>Controle</strong>: você vai conseguir ver suas presenças nas aulas, 
+                                      quantidades de faltas restantes e quantas faltas você já tem!
+                                      <br />
+                                      <strong>Dashboard</strong>: você vai conseguir ver sua performance 
+                                      nos projetos e a porcentagem de performance geral no módulo!
                                   </p>
                                   <p style="font-size: 14px; line-height: 140%">
                                     &nbsp;
@@ -488,11 +496,11 @@ export default function mailTemplate(studentName, spreadId) {
                                     style="
                                       font-size: 14px;
                                       line-height: 140%;
-                                      text-align: center;
                                     "
                                   >
                                     Tem algum questionamento ou feedback? Você
-                                    pode se contactar a qualquer momento com o seu coordenador de turma.
+                                    pode se contactar a qualquer momento com o
+                                    seu coordenador de turma.
                                   </p>
                                   <br />
                                   <p style="font-size: 14px; line-height: 140%">
@@ -1085,7 +1093,8 @@ export default function mailTemplate(studentName, spreadId) {
                                   "
                                 >
                                   <p style="font-size: 14px; line-height: 180%">
-                                    &copy; 2022 Driven Education. Todos os direitos reservados.
+                                    &copy; 2022 Driven Education. Todos os
+                                    direitos reservados.
                                   </p>
                                 </div>
                               </td>
@@ -1103,5 +1112,6 @@ export default function mailTemplate(studentName, spreadId) {
       </tbody>
     </table>
   </body>
-</html>`;
+</html>
+`;
 }
