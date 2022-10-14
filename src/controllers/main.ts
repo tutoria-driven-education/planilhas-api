@@ -1,7 +1,8 @@
-import * as mainService from "../services/main.js";
-import { extractIdByUrl } from "../utils/index.js";
+import { Request, Response } from 'express'
+import * as mainService from "../services/main";
+import { extractIdByUrl } from "../utils/index";
 
-export async function execute(req, res) {
+export async function execute(req: Request, res: Response) {
   const {
     linkSpreadsheetStudents,
     linkSpreadsheetTemplate,
@@ -24,7 +25,7 @@ export async function execute(req, res) {
   return res.sendStatus(200);
 }
 
-export async function updateSheet(req, res) {
+export async function updateSheet(req: Request, res: Response) {
   const {
     folderLinkSpreadsheet,
     linkSpreadsheetTemplate,
@@ -53,7 +54,7 @@ export async function updateSheet(req, res) {
   return res.sendStatus(200);
 }
 
-export async function getStudentsUnderNinetyPercent(req, res) {
+export async function getStudentsUnderNinetyPercent(req: Request, res: Response) {
   const { linkSpreadsheetStudents, token, endpoint } = req.body;
 
   try {
@@ -73,7 +74,7 @@ export async function getStudentsUnderNinetyPercent(req, res) {
   }
 }
 
-export async function updateControl(req, res) {
+export async function updateControl(req: Request, res: Response) {
   const {
     folderLinkSpreadsheet,
     linkSpreadsheetTemplate,
@@ -100,7 +101,7 @@ export async function updateControl(req, res) {
   return res.sendStatus(200);
 }
 
-export async function executeCarrer(req, res) {
+export async function executeCarrer(req: Request, res: Response) {
   const {
     folderLinkSpreadsheet,
     linkSpreadsheetTemplate,

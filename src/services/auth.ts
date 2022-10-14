@@ -4,7 +4,7 @@ import { google } from "googleapis";
 async function getOauth() {
   let credentials;
   try {
-    credentials = JSON.parse(await fs.readFile("credentials.json"));
+    credentials = JSON.parse(await fs.readFile("credentials.json", "utf8"));
   } catch (err) {
     console.log("Error in reading credentials", err?.message);
   }
@@ -19,7 +19,7 @@ async function getOauth() {
   return oAuth2Client;
 }
 
-export async function getLinkToken() {
+export async function getLinkToken(): Promise<string> {
   const SCOPES = [
     "https://www.googleapis.com/auth/drive",
     "https://spreadsheets.google.com/feeds",
@@ -33,7 +33,7 @@ export async function getLinkToken() {
   return authUrl;
 }
 
-export async function getTokenGoogle(code) {
+export async function getTokenGoogle(code: string) {
   const oAuth = await getOauth();
   try {
     const request = await oAuth.getToken(code);
@@ -43,7 +43,8 @@ export async function getTokenGoogle(code) {
   }
 }
 
-export async function authorize(token) {
+// Verificar tipagem Credentials que não é importada
+export async function authorize(token: any) {
   const oAuth = await getOauth();
 
   oAuth.setCredentials(token);

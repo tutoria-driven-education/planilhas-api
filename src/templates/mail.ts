@@ -1,4 +1,4 @@
-export default function mailTemplate(studentName, spreadId) {
+export default function mailTemplate(studentName: string, spreadId: string): string {
   return `<html
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:v="urn:schemas-microsoft-com:vml"

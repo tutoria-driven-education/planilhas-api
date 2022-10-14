@@ -1,12 +1,14 @@
 import { google } from "googleapis";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import { delay, extractStudentNameByFileName } from "../utils/index.js";
-import { logger } from "../utils/logger.js";
+import { GoogleSpreadsheet, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
+import { delay, extractStudentNameByFileName } from "../utils/index";
+import { logger } from "../utils/logger";
+import { OAuth2Client } from "googleapis-common";
+import { OperationsFailed, Ranges, SchemasFile } from "types";
 
-export async function getStudents(auth, id, amountOfStudents) {
+export async function getStudents(auth: OAuth2Client, id: string, amountOfStudents: number) {
   const sheetTitle = "Dashboard";
   const initRowStudents = 12;
-  const lastRowStudents = parseInt(amountOfStudents) + initRowStudents - 1;
+  const lastRowStudents: number = amountOfStudents + initRowStudents - 1;
   const request = {
     spreadsheetId: id,
     range: `${sheetTitle}!A${initRowStudents}:B${lastRowStudents}`,
@@ -31,16 +33,16 @@ export async function getStudents(auth, id, amountOfStudents) {
 
     return studentsInfo;
   } catch (error) {
-    console.log("deu ruim em pegar os alunos", error?.message);
+    console.log("deu ruim em pegar os alunos", error.message);
   }
 }
 
 export async function writeSheetStudent(
-  auth,
-  id,
-  studentName,
-  studentEmail,
-  operationsFailed = []
+  auth: OAuth2Client,
+  id: string,
+  studentName: string,
+  studentEmail: string,
+  operationsFailed: OperationsFailed[] = []
 ) {
   const sheet = google.sheets("v4");
   async function changeName() {
@@ -81,7 +83,7 @@ export async function writeSheetStudent(
       const response = (await sheet.spreadsheets.values.update(request)).data;
 
       return response;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error("Error in write name student");
     }
   }
@@ -89,14 +91,14 @@ export async function writeSheetStudent(
   try {
     await changeName();
     await changeEmail();
-  } catch (error) {
+  } catch (error: any) {
     const operation = operationsFailed.find(
       (op) => op.id === id && op.name == "write_sheet"
     );
     if (operation !== undefined) {
       if (operation.limit >= 5) {
         logger.error(
-          `Can not write sheet; error: ${error?.message} attempts:${operation.limit}`
+          `Can not write sheet; error: ${error.message ?? 'no error message'} attempts:${operation.limit}`
         );
         throw new Error("Error in write sheet");
       } else {
@@ -121,7 +123,7 @@ export async function writeSheetStudent(
   }
 }
 
-export async function findSheet(auth, id, sheetName) {
+export async function findSheet(auth: OAuth2Client, id: string, sheetName: string): Promise<number> {
   const sheet = google.sheets("v4");
   const request = {
     spreadsheetId: id,
@@ -139,11 +141,11 @@ export async function findSheet(auth, id, sheetName) {
   } catch (err) {
     console.log(`TRYING: to find sheet named ${sheetName}!`);
     await delay(5000);
-    return await findSheet(auth, id, sheetName);
+    await findSheet(auth, id, sheetName);
   }
 }
 
-export async function deleteSheet(auth, file, studentSheetId, pageName) {
+export async function deleteSheet(auth: OAuth2Client, file: SchemasFile, studentSheetId: number, pageName: string) {
   const sheet = google.sheets("v4");
 
   const request = {
@@ -171,23 +173,24 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
 }
 
 export async function copyToNewSheet(
-  auth,
-  file,
-  idSpreadsheetTemplate,
-  sheetIdInsideTemplate
+  auth: OAuth2Client,
+  file: SchemasFile,
+  idSpreadsheetTemplate: string,
+  sheetIdInsideTemplate: number,
 ) {
   const sheet = google.sheets("v4");
 
   const request = {
     spreadsheetId: idSpreadsheetTemplate,
     sheetId: sheetIdInsideTemplate,
-    resource: {
+    requestBody: {
       destinationSpreadsheetId: file.id,
     },
     auth,
   };
+
   try {
-    await sheet.spreadsheets.sheets.copyTo(request);
+    sheet.spreadsheets.sheets.copyTo(request);
   } catch (err) {
     console.log(`TRYING: to copy new sheet on document ${file.name}!`);
     await delay(5000);
@@ -201,12 +204,12 @@ export async function copyToNewSheet(
 }
 
 export async function alterSheetNameAndInfo(
-  auth,
-  file,
-  pageName,
-  isProtected,
-  isHidden,
-  operationsFailed = []
+  auth: OAuth2Client,
+  file: SchemasFile,
+  pageName: string,
+  isProtected: boolean,
+  isHidden: boolean,
+  operationsFailed: OperationsFailed[] = []
 ) {
   const actualPageName = `Cópia de ${pageName}`;
   const studentSheetId = await findSheet(auth, file.id, actualPageName);
@@ -257,7 +260,7 @@ export async function alterSheetNameAndInfo(
   }
 }
 
-async function updateValues(auth, file, actualPageName, studentName) {
+async function updateValues(auth: OAuth2Client, file: SchemasFile, actualPageName: string, studentName: string) {
   const sheet = google.sheets("v4");
 
   const values = new Array(4).fill(Array(0));
@@ -282,7 +285,7 @@ async function updateValues(auth, file, actualPageName, studentName) {
   }
 }
 
-async function updateProtection(auth, file, studentSheetId) {
+async function updateProtection(auth: OAuth2Client, file: SchemasFile, studentSheetId: number) {
   const sheet = google.sheets("v4");
 
   const requestProtect = {
@@ -312,7 +315,7 @@ async function updateProtection(auth, file, studentSheetId) {
   }
 }
 
-export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
+export async function getStudentsInfoWithAttendancePercentage(sheet: GoogleSpreadsheetWorksheet, endpoint: string) {
   const INITIAL_ROW = 11;
   const NAME_COLUMN = 0;
   const EMAIL_COLUMN = 1;
@@ -335,19 +338,19 @@ export async function getStudentsInfoWithAttendancePercentage(sheet, endpoint) {
         students.push({
           name,
           email,
-          percentage: Number((percentage * 100).toFixed(1)),
+          percentage: Number((100 * Number(percentage)).toFixed(1)),
         });
 
       row++;
     } catch {
       throw new Error(`READ_ERROR: Spreadsheet not loaded at row ${row}.`);
     }
-  } while (name !== "Presença Síncrona" && row < endpoint);
+  } while (name !== "Presença Síncrona" && row < parseInt(endpoint));
 
   return students;
 }
 
-export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
+export async function initSpreadsheet(auth: OAuth2Client, id: string, sheetTitle: string, ranges: Ranges = null) {
   const doc = new GoogleSpreadsheet(id);
   doc.useOAuth2Client(auth);
 
@@ -368,10 +371,10 @@ export async function initSpreadsheet(auth, id, sheetTitle, ranges = null) {
 }
 
 export async function getStudentControlData(
-  auth,
-  file,
-  studentSheetId,
-  pageName
+  auth: OAuth2Client,
+  file: SchemasFile,
+  studentSheetId: number,
+  pageName: string
 ) {
   const sheet = google.sheets("v4");
 
@@ -389,16 +392,16 @@ export async function getStudentControlData(
   } catch (err) {
     console.log(`TRYING: to get student data at ${file.name}!`);
     await delay(5000);
-    return await getStudentControlData(auth, file, studentSheetId, pageName);
+    await getStudentControlData(auth, file, studentSheetId, pageName);
   }
 }
 
 export async function updateTitleAndHidden(
-  auth,
-  file,
-  studentSheetId,
-  pageName,
-  isHidden
+  auth: OAuth2Client,
+  file: SchemasFile,
+  studentSheetId: number,
+  pageName: string,
+  isHidden: boolean
 ) {
   const sheet = google.sheets("v4");
 
@@ -406,7 +409,7 @@ export async function updateTitleAndHidden(
   if (isHidden) {
     requestTitle = {
       spreadsheetId: file.id,
-      resource: {
+      requestBody: {
         requests: [
           {
             updateSheetProperties: {
@@ -425,7 +428,7 @@ export async function updateTitleAndHidden(
   } else {
     requestTitle = {
       spreadsheetId: file.id,
-      resource: {
+      requestBody: {
         requests: [
           {
             updateSheetProperties: {
@@ -444,6 +447,7 @@ export async function updateTitleAndHidden(
 
   try {
     await sheet.spreadsheets.batchUpdate(requestTitle);
+
     if (isHidden) {
       console.log(`Sucess on updating title and hidden at file ${file.name}`);
     } else {
@@ -463,12 +467,12 @@ export async function updateTitleAndHidden(
 }
 
 export async function alterControlSheet(
-  auth,
-  file,
-  pageName,
-  isProtected,
-  studentData,
-  operationsFailed = []
+  auth: OAuth2Client,
+  file: SchemasFile,
+  pageName: string,
+  isProtected: boolean,
+  studentData: any[][],
+  operationsFailed: OperationsFailed[] = []
 ) {
   const actualPageName = `Cópia de ${pageName}`;
   const studentSheetId = await findSheet(auth, file.id, actualPageName);
@@ -514,7 +518,7 @@ export async function alterControlSheet(
   }
 }
 
-async function updateControlValues(auth, file, actualPageName, studentData) {
+async function updateControlValues(auth: OAuth2Client, file: SchemasFile, actualPageName: string, studentData: any[][]) {
   const sheet = google.sheets("v4");
   const nameValue = new Array(3).fill(Array(0));
   nameValue[0] = [studentData[0][0]];
@@ -554,11 +558,11 @@ async function updateControlValues(auth, file, actualPageName, studentData) {
 }
 
 export async function writeCareerSheetStudent(
-  auth,
-  id,
-  studentName,
-  pageName,
-  fileNameInDrive
+  auth: OAuth2Client,
+  id: string,
+  studentName: string,
+  pageName: string,
+  fileNameInDrive: string
 ) {
   const sheet = google.sheets("v4");
   const values = new Array(2).fill(Array(0));

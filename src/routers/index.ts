@@ -1,7 +1,7 @@
 import { Router } from "express";
-import * as authController from "../controllers/auth.js";
-import * as mainController from "../controllers/main.js";
-import { logger } from "../utils/logger.js";
+import * as authController from "../controllers/auth";
+import * as mainController from "../controllers/main";
+import { logger } from "../utils/logger";
 const router = Router();
 
 router.get("/test", (req, res) => {

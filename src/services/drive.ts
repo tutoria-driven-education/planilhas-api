@@ -1,9 +1,11 @@
 import { createReadStream } from "fs";
 import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
+import { OperationsFailed } from "types/index.js";
 import { delay } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
-export async function uploadFile(auth, fileNameInDrive, path, folderId) {
+export async function uploadFile(auth: OAuth2Client, fileNameInDrive: string, path: string, folderId: string) {
   const drive = google.drive({ version: "v3", auth });
   const resource = {
     name: fileNameInDrive,
@@ -18,7 +20,7 @@ export async function uploadFile(auth, fileNameInDrive, path, folderId) {
   try {
     const request = await Promise.resolve(
       drive.files.create({
-        resource,
+        requestBody: resource,
         media,
         fields: "id",
       })
@@ -31,7 +33,7 @@ export async function uploadFile(auth, fileNameInDrive, path, folderId) {
   }
 }
 
-export async function createFolder(auth, className) {
+export async function createFolder(auth: OAuth2Client, className: string) {
   const drive = google.drive({ version: "v3", auth });
   let resource = {
     name: className,
@@ -41,7 +43,7 @@ export async function createFolder(auth, className) {
   try {
     const request = await Promise.resolve(
       drive.files.create({
-        resource,
+        requestBody: resource,
         fields: "id",
       })
     );
@@ -52,11 +54,11 @@ export async function createFolder(auth, className) {
 }
 
 export async function copyFile(
-  auth,
-  id,
-  folderId,
-  nameFile,
-  operationsFailed = []
+  auth: OAuth2Client,
+  id: string,
+  folderId: string,
+  nameFile: string,
+  operationsFailed: OperationsFailed[] = []
 ) {
   const drive = google.drive({ version: "v3", auth });
 
@@ -81,7 +83,7 @@ export async function copyFile(
         logger.error(
           `Don't copy file ${nameFile} error: ${error?.message} attempts:${operation.limit}`
         );
-        throw new Error("Não foi possivel copiar", nameFile);
+        throw new Error(`Não foi possivel copiar ${nameFile}`);
       } else {
         operation.limit += 1;
       }
@@ -98,14 +100,14 @@ export async function copyFile(
     }
     console.log(`TRYING: Tentando copiar novamente o arquivo ${nameFile}`);
     await delay(10000);
-    return await copyFile(auth, id, folderId, nameFile, operationsFailed);
+    await copyFile(auth, id, folderId, nameFile, operationsFailed);
   }
 }
 
 export async function updatePermissionStudentFile(
-  auth,
-  id,
-  operationsFailed = []
+  auth: OAuth2Client,
+  id: string,
+  operationsFailed: OperationsFailed[] = []
 ) {
   const drive = google.drive({ version: "v3", auth });
 
@@ -113,7 +115,7 @@ export async function updatePermissionStudentFile(
     const request = Promise.resolve(
       drive.permissions.create({
         fileId: id,
-        resource: {
+        requestBody: {
           type: "anyone",
           role: "reader",
         },
@@ -147,7 +149,7 @@ export async function updatePermissionStudentFile(
   }
 }
 
-export async function getIdsInsideFolder(auth, id) {
+export async function getIdsInsideFolder(auth: OAuth2Client, id: string) {
   const drive = google.drive({ version: "v3", auth });
   try {
     return await Promise.resolve(
@@ -157,7 +159,7 @@ export async function getIdsInsideFolder(auth, id) {
         q: `'${id}' in parents and name contains 'Controle de Presença'`,
       })
     );
-  } catch (err) {
-    throw new Error("Error getting all id's inside folder", err?.message);
+  } catch (err: any) {
+    throw new Error(`Error getting all id's inside folder: ${err.message}`);
   }
 }

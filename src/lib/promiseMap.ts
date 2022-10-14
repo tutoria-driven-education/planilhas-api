@@ -1,4 +1,6 @@
-export const promiseMap = (array, promiseFn, args) => {
+import { Args, SchemasFile } from "types";
+
+export function promiseMap (array: SchemasFile[], promiseFn: Function, args: Args) {
   if (!array) {
     return Promise.reject("arrayNotIterable");
   }
@@ -15,14 +17,14 @@ export const promiseMap = (array, promiseFn, args) => {
 
   let results = new Array(array.length);
 
-  let queue = [];
-  let finished = 0;
+  let queue: any[] = [];
+  let finished: number = 0;
 
   return new Promise((resolve, reject) => {
     function queuePromise() {
       let item = workingStack.shift();
       let itemPromise = (promiseFn(item) || Promise.resolve())
-        .then((result) => {
+        .then((result: any) => {
           finished++;
           results[array.indexOf(item)] = result;
           if (finished === array.length) {
@@ -35,7 +37,7 @@ export const promiseMap = (array, promiseFn, args) => {
             queuePromise();
           }
         })
-        .catch((err) => {
+        .catch((err: Error) => {
           return reject(err);
         });
 

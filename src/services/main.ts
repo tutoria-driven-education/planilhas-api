@@ -1,11 +1,11 @@
-import { promiseMap } from "../lib/promiseMap.js";
-import { authorize } from "./auth.js";
+import { promiseMap } from "../lib/promiseMap";
+import { authorize } from "./auth";
 import {
   createFolder,
   copyFile,
   updatePermissionStudentFile,
   getIdsInsideFolder,
-} from "./drive.js";
+} from "./drive";
 import {
   writeSheetStudent,
   getStudents,
@@ -18,13 +18,15 @@ import {
   getStudentControlData,
   alterControlSheet,
   writeCareerSheetStudent,
-} from "./sheet.js";
-import sendStudentMail from "./mail.js";
-import { logger } from "../utils/logger.js";
+} from "./sheet";
+import sendStudentMail from "./mail";
+import { logger } from "../utils/logger";
 import NodeMailer from "nodemailer";
-import { extractStudentNameByFileName } from "../utils/index.js";
+import { extractStudentNameByFileName } from "../utils/index";
+import { OperationsFailed, SchemasFile, StudentsInfo } from "types";
+import { OAuth2Client } from "googleapis-common";
 
-const operationsFailed = [];
+const operationsFailed: OperationsFailed[] = [];
 
 const mail = NodeMailer.createTransport({
   host: "smtp.gmail.com",
@@ -36,12 +38,12 @@ const mail = NodeMailer.createTransport({
 });
 
 async function uploadFilesStudents(
-  auth,
-  students,
-  folderId,
-  idSpreadsheetTemplate
+  auth: OAuth2Client,
+  students: StudentsInfo[],
+  folderId: string,
+  idSpreadsheetTemplate: string
 ) {
-  async function createStudentComplete(student) {
+  async function createStudentComplete(student: StudentsInfo) {
     let studentName = student.name;
     let fileNameInDrive = `${studentName} - Controle de Presença`;
 
@@ -58,7 +60,6 @@ async function uploadFilesStudents(
       await updatePermissionStudentFile(
         auth,
         studentId,
-        studentName,
         operationsFailed
       );
       console.log(`Update permission ${studentName} with success!`);
@@ -83,11 +84,11 @@ async function uploadFilesStudents(
 }
 
 export async function execute(
-  idSpreadsheetStudents,
-  idSpreadsheetTemplate,
-  amountStudents,
-  className,
-  token
+  idSpreadsheetStudents: string,
+  idSpreadsheetTemplate: string,
+  amountStudents: number,
+  className: string,
+  token: any
 ) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
@@ -108,12 +109,12 @@ export async function execute(
 }
 
 export async function executeUpdate(
-  folderId,
-  idSpreadsheetTemplate,
-  pageName,
-  isProtected,
-  isHidden,
-  token
+  folderId: string,
+  idSpreadsheetTemplate: string,
+  pageName: string,
+  isProtected: boolean,
+  isHidden: boolean,
+  token: any
 ) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
@@ -148,9 +149,9 @@ export async function executeUpdate(
 }
 
 export async function getStudentsUnderNinetyPercent(
-  idSpreadsheet,
-  token,
-  endpoint
+  idSpreadsheet: string,
+  token: any,
+  endpoint: string
 ) {
   const auth = await authorize(token);
   console.info("Success on authenticate!");
@@ -176,15 +177,15 @@ export async function getStudentsUnderNinetyPercent(
 }
 
 async function createNewPage(
-  auth,
-  arrayFilesId,
-  idSpreadsheetTemplate,
-  sheetIdInsideTemplate,
-  isProtected,
-  isHidden,
-  pageName
+  auth: OAuth2Client,
+  arrayFilesId: SchemasFile[],
+  idSpreadsheetTemplate: string,
+  sheetIdInsideTemplate: number,
+  isProtected: boolean,
+  isHidden: boolean,
+  pageName: string
 ) {
-  async function updateStudentsFiles(file) {
+  async function updateStudentsFiles(file: any) {
     try {
       const studentSheetId = await findSheet(auth, file.id, pageName);
       if (studentSheetId) {
@@ -216,11 +217,11 @@ async function createNewPage(
 }
 
 export async function executeUpdateControl(
-  folderId,
-  idSpreadsheetTemplate,
-  pageName,
-  isProtected,
-  token
+  folderId: string,
+  idSpreadsheetTemplate: string,
+  pageName: string,
+  isProtected: boolean,
+  token: any
 ) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
@@ -255,14 +256,14 @@ export async function executeUpdateControl(
 }
 
 async function createNewControlPage(
-  auth,
-  arrayFilesId,
-  idSpreadsheetTemplate,
-  sheetIdInsideTemplate,
-  isProtected,
-  pageName
+  auth: OAuth2Client,
+  arrayFilesId: SchemasFile[],
+  idSpreadsheetTemplate: string,
+  sheetIdInsideTemplate: number,
+  isProtected: boolean,
+  pageName: string
 ) {
-  async function updateStudentsControl(file) {
+  async function updateStudentsControl(file: SchemasFile) {
     try {
       const studentSheetId = await findSheet(auth, file.id, pageName);
       let studentData = null;
@@ -305,11 +306,11 @@ async function createNewControlPage(
 }
 
 export async function executeCarrer(
-  folderIdWithStudents,
-  idSpreadsheetTemplate,
-  pageName,
-  folderName,
-  token
+  folderIdWithStudents: string,
+  idSpreadsheetTemplate: string,
+  pageName: string,
+  folderName: string,
+  token: any
 ) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
@@ -334,13 +335,13 @@ export async function executeCarrer(
 }
 
 async function createNewCareerPage(
-  auth,
-  arrayFilesId,
-  idSpreadsheetTemplate,
-  pageName,
-  createdFolderId
+  auth: OAuth2Client,
+  arrayFilesId: SchemasFile[],
+  idSpreadsheetTemplate: string,
+  pageName: string,
+  createdFolderId: string
 ) {
-  async function createCareerPage(file) {
+  async function createCareerPage(file: SchemasFile) {
     const studentName = extractStudentNameByFileName(file);
     const fileNameInDrive = `${studentName} - Applications`;
 

@@ -1,6 +1,6 @@
 import winston from "winston";
 
-const logger = winston.createLogger({
+const logger: winston.Logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.errors({ stack: true }),
     winston.format.json()
