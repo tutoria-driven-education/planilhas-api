@@ -1,5 +1,5 @@
-import mailTemplate from "../templates/mail.js";
-import { delay } from "../utils/index.js";
+import mailTemplate from "../templates/mail";
+import { delay } from "../utils/index";
 
 export default async function sendStudentMail(mail: any, studentName: string, studentEmail: string, sheetId: string) {
   const template = mailTemplate(studentName, sheetId);

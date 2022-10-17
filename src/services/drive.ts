@@ -1,9 +1,9 @@
 import { createReadStream } from "fs";
 import { google } from "googleapis";
 import { OAuth2Client } from "googleapis-common";
-import { OperationsFailed } from "types/index.js";
-import { delay } from "../utils/index.js";
-import { logger } from "../utils/logger.js";
+import { OperationsFailed } from "types/index";
+import { delay } from "../utils/index";
+import { logger } from "../utils/logger";
 
 export async function uploadFile(auth: OAuth2Client, fileNameInDrive: string, path: string, folderId: string) {
   const drive = google.drive({ version: "v3", auth });

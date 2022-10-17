@@ -1,13 +1,12 @@
 {
   "name": "planilhas",
-  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/server.js",
+    "build": "rm -rf ./dist && npx tsc -P ./tsconfig.json --outDir dist",
+    "dev": "nodemon ./src/server.ts"
   },
   "keywords": [],
   "author": "",
