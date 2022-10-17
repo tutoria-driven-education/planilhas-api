@@ -18,6 +18,9 @@ import {
   getStudentControlData,
   alterControlSheet,
   writeCareerSheetStudent,
+  getStudentsWithFlags,
+  getStudentsSituation,
+  writeFlag,
 } from "./sheet.js";
 import sendStudentMail from "./mail.js";
 import { logger } from "../utils/logger.js";
@@ -70,8 +73,8 @@ async function uploadFilesStudents(
         student.email,
         operationsFailed
       );
-      console.log(`Student ${studentName} file rewritten!`);
-      sendStudentMail(mail, student.name, student.email, studentId);
+      // console.log(`Student ${studentName} file rewritten!`);
+      // sendStudentMail(mail, student.name, student.email, studentId);
     } catch (error) {
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
@@ -370,4 +373,46 @@ async function createNewCareerPage(
   }
 
   return promiseMap(arrayFilesId, createCareerPage, { concurrency: 5 });
+}
+
+export async function executeUpdateFlags({
+  idSpreadsheetStudents,
+  idSpreadsheetUpdate,
+  start,
+  end,
+  week,
+  token
+}) {
+  const auth = await authorize(token);
+  console.log("Success on authenticate!");
+
+  const studentsFlags = await getStudentsWithFlags(auth, idSpreadsheetUpdate);
+  console.log("Success on getting student flags!");
+
+  const studentNeedingFlags = await getStudentsSituation(auth, idSpreadsheetStudents, start, end, week);
+  console.log("Success on getting student situation!");
+
+  const CORRECTION = 2;
+  const lastStudentRow = parseInt(studentsFlags.length) + CORRECTION;
+
+  await updateFlags(auth, studentNeedingFlags, week, idSpreadsheetUpdate, lastStudentRow);
+  console.log("Done!");
+}
+
+async function updateFlags(auth, studentNeedingFlags, week, idSpreadsheetUpdate, lastStudentRow) {
+  const requestArray = [];
+  for (let i = 0; i < studentNeedingFlags.length; i++) {
+    const student = studentNeedingFlags[i];
+    const currentArray = [];
+    currentArray.push(student.name);
+    currentArray.push("");
+    currentArray.push(student.currentFlag);
+    currentArray.push(week);
+    currentArray.push(false);
+    currentArray.push(false);
+    currentArray.push(false);
+    currentArray.push("");
+    requestArray.push(currentArray);
+  }
+  await writeFlag(auth, requestArray, idSpreadsheetUpdate, lastStudentRow);
 }

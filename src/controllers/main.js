@@ -126,3 +126,28 @@ export async function executeCarrer(req, res) {
 
   return res.sendStatus(200);
 }
+
+export async function updateFlags(req, res) {
+  const {
+    linkSpreadsheetStudents,
+    spreadsheetUpdate,
+    start,
+    end,
+    week,
+    token
+  } = req.body;
+
+  const idSpreadsheetStudents = extractIdByUrl(linkSpreadsheetStudents);
+  const idSpreadsheetUpdate = extractIdByUrl(spreadsheetUpdate);
+
+  await mainService.executeUpdateFlags({
+    idSpreadsheetStudents,
+    idSpreadsheetUpdate,
+    start,
+    end,
+    week,
+    token
+  });
+
+  return res.sendStatus(200);
+}

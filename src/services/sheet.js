@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { delay, extractStudentNameByFileName } from "../utils/index.js";
+import { delay, extractStudentNameByFileName, getCurrentSpreadLetter } from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
 export async function getStudents(auth, id, amountOfStudents) {
@@ -583,5 +583,94 @@ export async function writeCareerSheetStudent(
     );
     await delay(5000);
     writeCareerSheetStudent(auth, id, studentName, pageName, fileNameInDrive);
+  }
+}
+
+export async function getStudentsWithFlags(auth, id) {
+  const sheetTitle = "Cópia de Controle";
+
+  const request = {
+    spreadsheetId: id,
+    range: `${sheetTitle}!A2:H`,
+    dateTimeRenderOption: "FORMATTED_STRING",
+    valueRenderOption: "UNFORMATTED_VALUE",
+    auth,
+  };
+  const sheet = google.sheets("v4");
+
+  try {
+    const studentsInfo = [];
+    const response = (await sheet.spreadsheets.values.get(request)).data.values;
+
+    for (const student of response) {
+      if (student[0] === "") break;
+      studentsInfo.push({
+        name: student[0],
+        flag: student[2],
+        week: student[3],
+      });
+    }
+
+    return studentsInfo;
+  } catch (error) {
+    console.log("deu ruim em pegar os alunos", error?.message);
+  }
+}
+
+export async function getStudentsSituation(auth, id, start, end, currentWeek) {
+  const sheetTitle = "Cópia de Saúde na Formação";
+  const endLetter = getCurrentSpreadLetter(currentWeek);
+
+  const request = {
+    spreadsheetId: id,
+    range: `${sheetTitle}!A${parseInt(start)}:${endLetter}${end}`,
+    dateTimeRenderOption: "FORMATTED_STRING",
+    valueRenderOption: "UNFORMATTED_VALUE",
+    auth,
+  };
+  const sheet = google.sheets("v4");
+
+  try {
+    const situationInfo = [];
+    const response = (await sheet.spreadsheets.values.get(request)).data.values;
+
+    for (const student of response) {
+      const currentValue = student[student.length - 1];
+      const previousValue = student[student.length - 2];
+      
+      if (student[2] === "Inativo" || currentValue <= previousValue) continue;
+      situationInfo.push({
+        name: student[0],
+        currentFlag: student[2],
+        currentValue,
+        previousValue
+      });
+    }
+
+    return situationInfo;
+  } catch (error) {
+    console.log("deu ruim em pegar os alunos", error?.message);
+  }
+}
+
+export async function writeFlag(auth, requestArray, id, lastStudentRow) {
+  const sheetTitle = "Cópia de Controle";
+
+  const sheet = google.sheets("v4");
+
+  const request = {
+    spreadsheetId: id,
+    range: `${sheetTitle}!A${lastStudentRow}:H`,
+    valueInputOption: "raw",
+    auth,
+    requestBody: {
+      values: requestArray,
+    },
+  };
+
+  try {
+    sheet.spreadsheets.values.update(request);
+  } catch (error) {
+    console.log("deu ruim em escrever a flag", error?.message);
   }
 }
