@@ -73,8 +73,8 @@ async function uploadFilesStudents(
         student.email,
         operationsFailed
       );
-      // console.log(`Student ${studentName} file rewritten!`);
-      // sendStudentMail(mail, student.name, student.email, studentId);
+      console.log(`Student ${studentName} file rewritten!`);
+      sendStudentMail(mail, student.name, student.email, studentId);
     } catch (error) {
       logger.info(
         `Error in process of student ${studentName} error: ${error?.message}`
@@ -404,14 +404,7 @@ async function updateFlags(auth, studentNeedingFlags, week, idSpreadsheetUpdate,
   for (let i = 0; i < studentNeedingFlags.length; i++) {
     const student = studentNeedingFlags[i];
     const currentArray = [];
-    currentArray.push(student.name);
-    currentArray.push("");
-    currentArray.push(student.currentFlag);
-    currentArray.push(week);
-    currentArray.push(false);
-    currentArray.push(false);
-    currentArray.push(false);
-    currentArray.push("");
+    currentArray.push(student.name, "", student.currentFlag, week, false, false, false, "");
     requestArray.push(currentArray);
   }
   await writeFlag(auth, requestArray, idSpreadsheetUpdate, lastStudentRow);

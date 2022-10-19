@@ -12,7 +12,7 @@ async function getOauth() {
   const oAuth2Client = new google.auth.OAuth2(
     client_id,
     client_secret,
-    redirect_uris[0]
+    process.env.NODE_ENV === "development" ? redirect_uris[0] : redirect_uris[1]
   );
 
   return oAuth2Client;
