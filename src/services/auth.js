@@ -8,12 +8,11 @@ async function getOauth() {
   } catch (err) {
     console.log("Error in reading credentials", err?.message);
   }
-
   const { client_secret, client_id, redirect_uris } = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
     client_id,
     client_secret,
-    redirect_uris[0]
+    process.env.NODE_ENV === "development" ? redirect_uris[0] : redirect_uris[1]
   );
 
   return oAuth2Client;
