@@ -18,6 +18,8 @@ router.post("/api/control", mainController.updateControl);
 router.post("/api/career", mainController.executeCarrer);
 router.post("/api/flags", mainController.updateFlags);
 
+// router.
+
 router.get(
   "/api/students-attendance",
   mainController.getStudentsUnderNinetyPercent
