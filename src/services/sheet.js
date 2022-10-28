@@ -619,9 +619,9 @@ export async function getStudentsWithFlags(auth, id) {
 
 export async function getStudentsSituation(auth, id, start, end, currentWeek) {
   const sheetTitle = "Saúde na Formação";
-  console.log(currentWeek);
+  
   const endLetter = getCurrentSpreadLetter(currentWeek);
-  console.log(endLetter);
+  
   const request = {
     spreadsheetId: id,
     range: `${sheetTitle}!A${parseInt(start)}:${endLetter}${end}`,
