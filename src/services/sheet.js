@@ -619,7 +619,7 @@ export async function getStudentsWithFlags(auth, id) {
 
 export async function getStudentsSituation(auth, id, start, end, currentWeek) {
   const sheetTitle = "Saúde na Formação";
-  
+
   const endLetter = getCurrentSpreadLetter(currentWeek);
   
   const request = {
@@ -638,7 +638,7 @@ export async function getStudentsSituation(auth, id, start, end, currentWeek) {
     for (const student of response) {
       const currentValue = student[student.length - 1];
       const previousValue = student[student.length - 2];
-      if(student[2] === "Inativo" || (currentValue === 0 && previousValue === 0) || currentValue < previousValue) continue;
+      if(student[2] === "Inativo" || student[2] === "Desligamento"|| (currentValue === 0 && previousValue === 0) || currentValue < previousValue) continue;
       situationInfo.push({
         name: student[0],
         currentFlag: currentValue > 2 && previousValue > 2 ? "Vermelho reincidente" : student[2],
