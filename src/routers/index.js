@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
 });
 
 router.post("/auth", authController.getLinkToken);
-router.post("/api/auth/token", authController.getTokenGoogle);
+router.post("/auth/token", authController.getTokenGoogle);
 
 router.post("/execute", mainController.execute);
 router.post("/update", mainController.updateSheet);
