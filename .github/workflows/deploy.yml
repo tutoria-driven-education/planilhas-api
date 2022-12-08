@@ -51,8 +51,6 @@ jobs:
             set > ${{ secrets.REMOTE_TARGET }}/.env
             cd ${{ secrets.REMOTE_TARGET }}
             docker-compose --env-file .env build
-            docker-compose --env-file .env down
-            docker-compose --env-file .env up -d
 
       - name: Remove old docker images
         uses: appleboy/ssh-action@master
