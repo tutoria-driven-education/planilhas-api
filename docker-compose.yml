@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  planilhas-api:
+    container_name: planilhas-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "npm run start"
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    networks:
+      - planilhas-network
+
+networks:
+  planilhas-network:
+    driver: bridge

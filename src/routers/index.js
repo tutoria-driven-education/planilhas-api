@@ -4,24 +4,23 @@ import * as mainController from "../controllers/main.js";
 import { logger } from "../utils/logger.js";
 const router = Router();
 
-router.get("/test", (req, res) => {
-  console.log("rodando...");
+router.get("/", (req, res) => {
   return res.send("Rodando");
 });
 
-router.post("/api/auth", authController.getLinkToken);
+router.post("/auth", authController.getLinkToken);
 router.post("/api/auth/token", authController.getTokenGoogle);
 
-router.post("/api/execute", mainController.execute);
-router.post("/api/update", mainController.updateSheet);
-router.post("/api/control", mainController.updateControl);
-router.post("/api/career", mainController.executeCarrer);
-router.post("/api/flags", mainController.updateFlags);
+router.post("/execute", mainController.execute);
+router.post("/update", mainController.updateSheet);
+router.post("/control", mainController.updateControl);
+router.post("/career", mainController.executeCarrer);
+router.post("/flags", mainController.updateFlags);
 
 // router.
 
 router.get(
-  "/api/students-attendance",
+  "/students-attendance",
   mainController.getStudentsUnderNinetyPercent
 );
 

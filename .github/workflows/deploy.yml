@@ -1,0 +1,66 @@
+on:
+  push:
+    branches:
+      - main
+
+name: Planilhas Deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Remove old files
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            for f in *; do rm -rf $f; done
+      - name: Sync files to server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SOURCE: "."
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}
+
+      - name: Deploy in server
+        uses: appleboy/ssh-action@master
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          APP_LOGIN: ${{ secrets.APP_LOGIN }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+          PORT: ${{ secrets.PORT }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          envs: EMAIL_USERNAME,EMAIL_PASSWORD,APP_LOGIN,APP_PASSWORD,PORT,NODE_ENV
+          script: |
+            set > ${{ secrets.REMOTE_TARGET }}/.env
+            cd ${{ secrets.REMOTE_TARGET }}
+            docker-compose --env-file .env build
+            docker-compose --env-file .env down
+            docker-compose --env-file .env up -d
+
+      - name: Remove old docker images
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            docker image prune -f
