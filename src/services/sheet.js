@@ -1,6 +1,10 @@
 import { google } from "googleapis";
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { delay, extractStudentNameByFileName, getCurrentSpreadLetter } from "../utils/index.js";
+import {
+  delay,
+  extractStudentNameByFileName,
+  getCurrentSpreadLetter,
+} from "../utils/index.js";
 import { logger } from "../utils/logger.js";
 
 export async function getStudents(auth, id, amountOfStudents) {
@@ -165,6 +169,7 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
     console.log(`TRYING: to delete ${pageName} at file ${file.name}!`);
+    console.log(err);
     await delay(5000);
     await deleteSheet(auth, file, studentSheetId, pageName);
   }
@@ -214,13 +219,7 @@ export async function alterSheetNameAndInfo(
 
   try {
     await updateValues(auth, file, actualPageName, studentName);
-    await updateTitleAndHidden(
-      auth,
-      file,
-      studentSheetId,
-      pageName,
-      isHidden
-    );
+    await updateTitleAndHidden(auth, file, studentSheetId, pageName, isHidden);
     if (isProtected) {
       await updateProtection(auth, file, studentSheetId);
     }
@@ -452,13 +451,7 @@ export async function updateTitleAndHidden(
   } catch (err) {
     console.log(`TRYING: alter title and hidden at file: ${file.name}!`);
     await delay(5000);
-    await updateTitleAndHidden(
-      auth,
-      file,
-      studentSheetId,
-      pageName,
-      isHidden
-    );
+    await updateTitleAndHidden(auth, file, studentSheetId, pageName, isHidden);
   }
 }
 
@@ -621,7 +614,7 @@ export async function getStudentsSituation(auth, id, start, end, currentWeek) {
   const sheetTitle = "Saúde na Formação";
 
   const endLetter = getCurrentSpreadLetter(currentWeek);
-  
+
   const request = {
     spreadsheetId: id,
     range: `${sheetTitle}!A${parseInt(start)}:${endLetter}${end}`,
@@ -638,12 +631,21 @@ export async function getStudentsSituation(auth, id, start, end, currentWeek) {
     for (const student of response) {
       const currentValue = student[student.length - 1];
       const previousValue = student[student.length - 2];
-      if(student[2] === "Inativo" || student[2] === "Desligamento"|| (currentValue === 0 && previousValue === 0) || currentValue < previousValue) continue;
+      if (
+        student[2] === "Inativo" ||
+        student[2] === "Desligamento" ||
+        (currentValue === 0 && previousValue === 0) ||
+        currentValue < previousValue
+      )
+        continue;
       situationInfo.push({
         name: student[0],
-        currentFlag: currentValue > 2 && previousValue > 2 ? "Vermelho reincidente" : student[2],
+        currentFlag:
+          currentValue > 2 && previousValue > 2
+            ? "Vermelho reincidente"
+            : student[2],
         currentValue,
-        previousValue
+        previousValue,
       });
     }
 
