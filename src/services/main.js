@@ -30,8 +30,7 @@ import { extractStudentNameByFileName } from "../utils/index.js";
 const operationsFailed = [];
 
 const mail = NodeMailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
@@ -381,7 +380,7 @@ export async function executeUpdateFlags({
   start,
   end,
   week,
-  token
+  token,
 }) {
   const auth = await authorize(token);
   console.log("Success on authenticate!");
@@ -389,22 +388,49 @@ export async function executeUpdateFlags({
   const studentsFlags = await getStudentsWithFlags(auth, idSpreadsheetUpdate);
   console.log("Success on getting student flags!");
 
-  const studentNeedingFlags = await getStudentsSituation(auth, idSpreadsheetStudents, start, end, week);
+  const studentNeedingFlags = await getStudentsSituation(
+    auth,
+    idSpreadsheetStudents,
+    start,
+    end,
+    week
+  );
   console.log("Success on getting student situation!");
 
   const CORRECTION = 2;
   const lastStudentRow = parseInt(studentsFlags.length) + CORRECTION;
 
-  await updateFlags(auth, studentNeedingFlags, week, idSpreadsheetUpdate, lastStudentRow);
+  await updateFlags(
+    auth,
+    studentNeedingFlags,
+    week,
+    idSpreadsheetUpdate,
+    lastStudentRow
+  );
   console.log("Done!");
 }
 
-async function updateFlags(auth, studentNeedingFlags, week, idSpreadsheetUpdate, lastStudentRow) {
+async function updateFlags(
+  auth,
+  studentNeedingFlags,
+  week,
+  idSpreadsheetUpdate,
+  lastStudentRow
+) {
   const requestArray = [];
   for (let i = 0; i < studentNeedingFlags.length; i++) {
     const student = studentNeedingFlags[i];
     const currentArray = [];
-    currentArray.push(student.name, "", student.currentFlag, week, false, false, false, "");
+    currentArray.push(
+      student.name,
+      "",
+      student.currentFlag,
+      week,
+      false,
+      false,
+      false,
+      ""
+    );
     requestArray.push(currentArray);
   }
   await writeFlag(auth, requestArray, idSpreadsheetUpdate, lastStudentRow);
