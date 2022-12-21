@@ -166,6 +166,7 @@ export async function deleteSheet(auth, file, studentSheetId, pageName) {
 
   try {
     await sheet.spreadsheets.batchUpdate(request);
+    await sheet.spreadsheets.batchUpdate(request);
     console.log(`Sucess on delete ${pageName} at file ${file.name}`);
   } catch (err) {
     console.log(`TRYING: to delete ${pageName} at file ${file.name}!`);
